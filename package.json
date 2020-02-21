@@ -32,6 +32,8 @@
     "ts-essentials": "^6.0.1"
   },
   "devDependencies": {
+    "@commitlint/cli": "^8.3.5",
+    "@commitlint/config-conventional": "^8.3.4",
     "@ehacke/commitlint-config": "^1.0.2",
     "@ehacke/eslint-config": "^1.0.0",
     "@ehacke/prettier-config": "^1.0.1",
@@ -44,6 +46,8 @@
     "@typescript-eslint/parser": "^2.20.0",
     "axios": "^0.19.2",
     "chai": "^4.2.0",
+    "commitizen": "^4.0.3",
+    "commitlint": "^8.3.5",
     "dotenv": "^8.2.0",
     "eslint": "^6.8.0",
     "eslint-import-resolver-typescript": "^2.0.0",
@@ -51,7 +55,7 @@
     "firebase-admin": "^8.9.2",
     "fixpack": "^3.0.5",
     "getenv": "^1.0.0",
-    "husky": "^4.0.10",
+    "husky": "^4.2.3",
     "ioredis": "^4.16.0",
     "jsdoc": "^3.6.3",
     "lint-staged": "^10.0.1",
