@@ -12,8 +12,6 @@ import pino from 'pino';
 import traverse, { TraverseContext } from 'traverse';
 import { DeepPartial } from 'ts-essentials';
 
-const log = pino({ prettyPrint: true });
-
 export enum FILTER_OPERATORS {
   GT = '>',
   GTE = '>=',
@@ -286,8 +284,8 @@ export class Firestore<T extends DalModel> extends Cached<T> {
       if (!result) await this.cache.del(id);
       return result;
     } catch (error) {
-      log.error(`Error while reading from db: ${error.message}`);
-      log.error('Data: ', data);
+      this.services.log.error(`Error while reading from db: ${error.message}`);
+      this.services.log.error('Data: ', data);
       throw error;
     }
   }
