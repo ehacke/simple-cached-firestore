@@ -1,0 +1,59 @@
+{
+  "exclude": [
+    "node_modules",
+    "./coverage",
+    "./scratch.*"
+  ],
+  "compilerOptions": {
+    "incremental": true,
+    "target": "es2019",
+    "lib": [
+      "es5",
+      "es6",
+      "dom",
+      "es2015.core",
+      "es2015.collection",
+      "es2015.generator",
+      "es2015.iterable",
+      "es2015.promise",
+      "es2015.proxy",
+      "es2015.reflect",
+      "es2015.symbol",
+      "es2015.symbol.wellknown",
+      "esnext.asynciterable",
+      "dom.iterable",
+      "scripthost",
+      "esnext",
+      "esnext.asynciterable",
+      "es2018"
+    ],
+    "module": "commonjs",
+    "allowJs": false,
+    "sourceMap": true,
+    "outDir": "./dist",
+    "strict": true,
+    "noImplicitAny": false,
+    "strictNullChecks": true,
+    "strictBindCallApply": true,
+    "noImplicitThis": false,
+    "alwaysStrict": true,
+    "noUnusedLocals": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "resolveJsonModule": true,
+    "moduleResolution": "node",
+    "baseUrl": "./",
+    "typeRoots": [
+      "./node_modules/@types",
+      "./types"
+    ],
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "declaration": true,
+    "paths": {
+      "@/firestore": ["firestore"],
+      "@/tests/*": ["tests/*"]
+    }
+  }
+}
