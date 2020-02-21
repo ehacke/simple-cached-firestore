@@ -1,0 +1,135 @@
+{
+  "name": "simple-cached-firestore",
+  "description": "Firestore wrapper with simplified API and optional caching built in",
+  "version": "1.0.0",
+  "author": "Eric Hacke",
+  "bugs": {
+    "url": "https://github.com/ehacke/simple-cached-firestore/issues"
+  },
+  "dependencies": {
+    "@ehacke/redis": "^1.0.2",
+    "@types/bluebird": "^3.5.28",
+    "@types/flat": "0.0.28",
+    "@types/ioredis": "^4.14.4",
+    "@types/lodash": "^4.14.144",
+    "@types/luxon": "^1.15.2",
+    "@types/node": "^13.7.4",
+    "@types/pino": "^5.15.5",
+    "@types/redlock": "^4.0.1",
+    "@types/traverse": "^0.6.32",
+    "bluebird": "^3.7.2",
+    "clean-deep": "^3.3.0",
+    "err": "^2.1.11",
+    "fast-json-stable-stringify": "^2.1.0",
+    "flat": "^5.0.0",
+    "http-status": "^1.4.2",
+    "lodash": "^4.17.15",
+    "luxon": "^1.22.0",
+    "pino": "^5.16.0",
+    "pino-pretty": "^3.6.0",
+    "redlock": "^4.1.0",
+    "traverse": "^0.6.6",
+    "ts-essentials": "^6.0.1"
+  },
+  "devDependencies": {
+    "@ehacke/commitlint-config": "^1.0.2",
+    "@ehacke/eslint-config": "^1.0.0",
+    "@ehacke/prettier-config": "^1.0.1",
+    "@istanbuljs/nyc-config-typescript": "^1.0.1",
+    "@types/chai-as-promised": "^7.1.2",
+    "@types/expect": "^24.3.0",
+    "@types/getenv": "^1.0.0",
+    "@types/mocha": "^7.0.1",
+    "@typescript-eslint/eslint-plugin": "^2.20.0",
+    "@typescript-eslint/parser": "^2.20.0",
+    "axios": "^0.19.2",
+    "chai": "^4.2.0",
+    "dotenv": "^8.2.0",
+    "eslint": "^6.8.0",
+    "eslint-import-resolver-typescript": "^2.0.0",
+    "eslint-plugin-simple-import-sort": "^5.0.0",
+    "firebase-admin": "^8.9.2",
+    "fixpack": "^3.0.5",
+    "getenv": "^1.0.0",
+    "husky": "^4.0.10",
+    "ioredis": "^4.16.0",
+    "jsdoc": "^3.6.3",
+    "lint-staged": "^10.0.1",
+    "mocha": "^7.0.0",
+    "nyc": "^15.0.0",
+    "prettier": "^1.18.2",
+    "prettier-eslint-cli": "^5.0.0",
+    "sinon": "^9.0.0",
+    "ts-node": "^8.6.2",
+    "ts-sinon": "^1.0.24",
+    "tsconfig-paths": "^3.9.0",
+    "typedoc": "^0.16.9",
+    "typedoc-plugin-markdown": "^2.2.16",
+    "typescript": "^3.7.5",
+    "typings": "^2.1.1"
+  },
+  "peerDependencies": {
+    "firebase-admin": "^8.9.2"
+  },
+  "files": [
+    "dist/**/*.{js,ts,tsbuildinfo}",
+    "docs/**/*.*"
+  ],
+  "homepage": "https://github.com/ehacke/simple-cached-firestore#readme",
+  "husky": {
+    "hooks": {
+      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS",
+      "pre-commit": "lint-staged"
+    }
+  },
+  "keywords": [
+    "cached",
+    "firebase",
+    "firestore",
+    "google"
+  ],
+  "license": "MIT",
+  "lint-staged": {
+    "package.json": [
+      "fixpack"
+    ],
+    "**/*.js, **/*.ts": [
+      "prettier-eslint --write",
+      "eslint --fix"
+    ]
+  },
+  "main": "dist/index.js",
+  "nyc": {
+    "extends": "@istanbuljs/nyc-config-typescript",
+    "all": true,
+    "extension": [
+      ".ts"
+    ],
+    "include": [
+      "firestore.ts"
+    ],
+    "exclude": [
+      "src/scratch.*"
+    ],
+    "reporter": [
+      "html",
+      "text",
+      "text-summary",
+      "lcov"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ehacke/simple-cached-firestore.git"
+  },
+  "scripts": {
+    "build": "rm -rf ./dist && tsc -p tsconfig.build.json",
+    "docs": "typedoc --plugin typedoc-plugin-markdown --readme none --exclude \"tests/**/*.+(unit|it).+(ts|js)\"",
+    "integration": "nyc mocha --recursive -r source-map-support/register -r ts-node/register -r tsconfig-paths/register --use_strict --exit \"tests/**/*.it.+(ts|js)\"",
+    "lint": "fixpack && prettier-eslint --write && eslint --fix \"**/*.{js,ts}\"",
+    "prepare": "fixpack && npm run build",
+    "test": "nyc mocha --recursive -r source-map-support/register -r ts-node/register -r tsconfig-paths/register --use_strict --exit \"tests/**/*.+(unit|it).+(ts|js)\"",
+    "unit": "nyc mocha --recursive -r source-map-support/register -r ts-node/register -r tsconfig-paths/register --use_strict --exit \"tests/**/*.unit.+(ts|js)\""
+  },
+  "types": "dist/index.d.ts"
+}
