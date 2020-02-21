@@ -1,17 +1,16 @@
 import { Cached, Redis } from '@ehacke/redis';
 import Bluebird from 'bluebird';
 import cleanDeep from 'clean-deep';
-import HTTP_STATUS from 'http-status';
 import Err from 'err';
 import stringify from 'fast-json-stable-stringify';
+import admin from 'firebase-admin';
 import flatten from 'flat';
+import HTTP_STATUS from 'http-status';
 import { defaultsDeep, isDate, reduce } from 'lodash';
 import { DateTime } from 'luxon';
-import traverse, { TraverseContext } from 'traverse';
 import pino from 'pino';
-import admin from 'firebase-admin';
+import traverse, { TraverseContext } from 'traverse';
 import { DeepPartial } from 'ts-essentials';
-import QuerySnapshot = FirebaseFirestore.QuerySnapshot;
 
 const log = pino({ prettyPrint: true });
 
@@ -123,8 +122,9 @@ export class Firestore<T extends DalModel> extends Cached<T> {
    * @param {any} obj
    * @returns {any}
    */
-  static translateDatesToTimestamps(obj) {
-    return traverse(obj).map(function(this: TraverseContext, property) {
+  static translateDatesToTimestamps(obj): any {
+    // eslint-disable-next-line array-callback-return
+    return traverse(obj).map(function(this: TraverseContext, property): void {
       if (isDate(property)) {
         this.update(admin.firestore.Timestamp.fromDate(property));
       }
@@ -136,8 +136,9 @@ export class Firestore<T extends DalModel> extends Cached<T> {
    * @param {any} obj
    * @returns {any}
    */
-  static translateTimestampsToDates(obj) {
-    return traverse(obj).map(function(this: TraverseContext, property) {
+  static translateTimestampsToDates(obj): any {
+    // eslint-disable-next-line array-callback-return
+    return traverse(obj).map(function(this: TraverseContext, property): void {
       if (property instanceof admin.firestore.Timestamp) {
         this.update((property as admin.firestore.Timestamp).toDate());
       }
@@ -184,7 +185,7 @@ export class Firestore<T extends DalModel> extends Cached<T> {
    * @param {QueryInterface} query
    * @returns {Query}
    */
-  private getQuerySnapshot(query: QueryInterface): Promise<QuerySnapshot> {
+  private getQuerySnapshot(query: QueryInterface): Promise<admin.firestore.QuerySnapshot> {
     if (!this.config) throw new Err(CONFIG_ERROR);
 
     let ref = this.services.firestore.collection(this.config.collection) as any;
@@ -234,7 +235,10 @@ export class Firestore<T extends DalModel> extends Cached<T> {
     await this.cache.del(instance.id);
     await this.cache.delLists();
 
-    await this.services.firestore.collection(this.config.collection).doc(instance.id).create(Firestore.translateDatesToTimestamps(data));
+    await this.services.firestore
+      .collection(this.config.collection)
+      .doc(instance.id)
+      .create(Firestore.translateDatesToTimestamps(data));
 
     await this.cache.delLists();
     await this.cache.set(instance.id, instance);
@@ -269,7 +273,10 @@ export class Firestore<T extends DalModel> extends Cached<T> {
   private async internalGet(id: string): Promise<T | null> {
     if (!this.config) throw new Err(CONFIG_ERROR);
 
-    const snapshot = await this.services.firestore.collection(this.config.collection).doc(id).get();
+    const snapshot = await this.services.firestore
+      .collection(this.config.collection)
+      .doc(id)
+      .get();
     if (!snapshot.exists) return null;
 
     const data = Firestore.translateTimestampsToDates(snapshot.data());
@@ -293,7 +300,10 @@ export class Firestore<T extends DalModel> extends Cached<T> {
   async rawGet(id: string): Promise<any | null> {
     if (!this.config) throw new Err(CONFIG_ERROR);
 
-    const snapshot = await this.services.firestore.collection(this.config.collection).doc(id).get();
+    const snapshot = await this.services.firestore
+      .collection(this.config.collection)
+      .doc(id)
+      .get();
     if (!snapshot.exists) return null;
 
     const data = Firestore.translateTimestampsToDates(snapshot.data());
@@ -342,7 +352,10 @@ export class Firestore<T extends DalModel> extends Cached<T> {
     await this.cache.del(id);
     await this.cache.delLists();
 
-    await this.services.firestore.collection(this.config.collection).doc(id).update(flattened as any);
+    await this.services.firestore
+      .collection(this.config.collection)
+      .doc(id)
+      .update(flattened as any);
 
     const instance = await this.rawGet(id);
     await this.cache.delLists();
@@ -379,7 +392,10 @@ export class Firestore<T extends DalModel> extends Cached<T> {
   private async internalRemove(id: string): Promise<void> {
     if (!this.config) throw new Err(CONFIG_ERROR);
 
-    await this.services.firestore.collection(this.config.collection).doc(id).delete();
+    await this.services.firestore
+      .collection(this.config.collection)
+      .doc(id)
+      .delete();
   }
 
   /**
@@ -400,7 +416,10 @@ export class Firestore<T extends DalModel> extends Cached<T> {
     // I don't know why that casting is necessary
     const updated = Firestore.cleanModel({ ...(await this.config.convertForDb(instance as DeepPartial<T>)), updatedAt: curDate });
 
-    await this.services.firestore.collection(this.config.collection).doc(id).set(Firestore.translateDatesToTimestamps(updated));
+    await this.services.firestore
+      .collection(this.config.collection)
+      .doc(id)
+      .set(Firestore.translateDatesToTimestamps(updated));
 
     const updatedInstance = await this.config.convertFromDb({ id, ...updated });
     await this.cache.del(id);
@@ -428,7 +447,7 @@ export class Firestore<T extends DalModel> extends Cached<T> {
       snapshots.push({ id: snapshot.id, ...Firestore.translateTimestampsToDates(snapshot.data()) });
     });
 
-    const results = (await Bluebird.map(snapshots,(snapshot) => {
+    const results = (await Bluebird.map(snapshots, (snapshot) => {
       if (!this.config) throw new Err(CONFIG_ERROR);
       return this.config.convertFromDb(snapshot);
     })) as T[];

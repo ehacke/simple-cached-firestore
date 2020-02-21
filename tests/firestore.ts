@@ -1,5 +1,5 @@
-import admin from 'firebase-admin';
 import { config } from 'dotenv';
+import admin from 'firebase-admin';
 import getenv from 'getenv';
 
 config();
@@ -10,7 +10,7 @@ getenv('FIRESTORE_EMULATOR_HOST');
 const app = admin.initializeApp({
   credential: admin.credential.applicationDefault(),
   databaseURL: 'http://localhost:8080',
-  projectId: 'project-test'
+  projectId: 'project-test',
 });
 
 export const db = app.firestore();

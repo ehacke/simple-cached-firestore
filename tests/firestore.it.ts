@@ -2,8 +2,9 @@ import { expect } from 'chai';
 import { DateTime } from 'luxon';
 import sinon from 'sinon';
 
-import { Firestore, FILTER_OPERATORS } from '@/firestore';
-import { db, deleteCollection } from '../tests/firestore';
+import { FILTER_OPERATORS, Firestore } from '@/firestore';
+
+import { db, deleteCollection } from './firestore';
 import redis from './mockRedis';
 
 class TestClass {

@@ -68,9 +68,6 @@
     "typescript": "^3.7.5",
     "typings": "^2.1.1"
   },
-  "peerDependencies": {
-    "firebase-admin": "^8.9.2"
-  },
   "files": [
     "dist/**/*.{js,ts,tsbuildinfo}",
     "docs/**/*.*"
@@ -117,6 +114,9 @@
       "text-summary",
       "lcov"
     ]
+  },
+  "peerDependencies": {
+    "firebase-admin": "^8.9.2"
   },
   "repository": {
     "type": "git",

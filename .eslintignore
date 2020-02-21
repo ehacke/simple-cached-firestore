@@ -1,0 +1,6 @@
+.nyc_output/**
+node_modules/**
+images/**
+coverage/**
+scratch.*
+dist/
