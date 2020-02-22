@@ -46,14 +46,9 @@ export interface QueryInterface {
   limit?: number;
 }
 
-export interface DalSchema {
-  excludeFromIndexes: string[];
-}
-
 export interface DalModel {
   id: string;
   validate(): any;
-  getDalSchema(): DalSchema;
   createdAt: Date;
   updatedAt: Date;
 }
