@@ -74,13 +74,13 @@ interface ConfigInterface {
   logConfig?: pino.LoggerOptions;
 }
 
-export interface DatastoreConfigInterface<T extends DalModel> {
+export interface FirestoreConfigInterface<T extends DalModel> {
   collection: string;
   convertForDb(instance: DeepPartial<T>): any;
   convertFromDb(params: any): T | Promise<T>;
 }
 
-export interface DatastoreCacheConfigInterface<T extends DalModel> {
+export interface FirestoreCacheConfigInterface<T extends DalModel> {
   cacheTtlSec: number;
   stringifyForCache(instance: T): Promise<string> | string;
   parseFromCache(instance: string): Promise<T> | T;
@@ -94,7 +94,7 @@ const CLEAN_CONFIG = {
   undefinedValues: true,
 };
 
-const CONFIG_ERROR = 'datastore instance not configured';
+const CONFIG_ERROR = 'firestore instance not configured';
 
 /**
  * @class
@@ -102,12 +102,12 @@ const CONFIG_ERROR = 'datastore instance not configured';
 export class Firestore<T extends DalModel> extends Cached<T> {
   /**
    * @param {ServicesInterface} services
-   * @param {DatastoreConfigInterface} config
+   * @param {FirestoreConfigInterface} config
    */
   constructor(services: ServicesInterface, config?: ConfigInterface) {
     super();
 
-    const logOptions = defaultsDeep({}, config?.logConfig, { name: 'datastore', prettyPrint: { colorize: true } });
+    const logOptions = defaultsDeep({}, config?.logConfig, { name: 'firestore', prettyPrint: { colorize: true } });
 
     this.services = {
       ...services,
@@ -144,12 +144,12 @@ export class Firestore<T extends DalModel> extends Cached<T> {
   }
 
   /**
-   * Configure datastore
-   * @param {DatastoreConfigInterface<T>} config
-   * @param {DatastoreCacheConfigInterface<T>} cacheConfig
+   * Configure firestore
+   * @param {FirestoreConfigInterface<T>} config
+   * @param {FirestoreCacheConfigInterface<T>} cacheConfig
    * @returns {void}
    */
-  configure(config: DatastoreConfigInterface<T>, cacheConfig?: DatastoreCacheConfigInterface<T>): void {
+  configure(config: FirestoreConfigInterface<T>, cacheConfig?: FirestoreCacheConfigInterface<T>): void {
     this.config = config;
 
     const { redis } = this.services;
@@ -162,7 +162,7 @@ export class Firestore<T extends DalModel> extends Cached<T> {
 
   readonly services: InternalServicesInterface;
 
-  private config?: DatastoreConfigInterface<T>;
+  private config?: FirestoreConfigInterface<T>;
 
   /**
    * Clean model of common properties that shouldn't be written
@@ -179,7 +179,7 @@ export class Firestore<T extends DalModel> extends Cached<T> {
   }
 
   /**
-   * Build datastore query from structured query
+   * Build firestore query from structured query
    * @param {QueryInterface} query
    * @returns {Query}
    */

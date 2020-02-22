@@ -4,12 +4,9 @@ import getenv from 'getenv';
 
 config();
 
-// Assert that this exists, or the app will fail
-getenv('FIRESTORE_EMULATOR_HOST');
-
 const app = admin.initializeApp({
   credential: admin.credential.applicationDefault(),
-  databaseURL: 'http://localhost:8080',
+  databaseURL: `http://${getenv('FIRESTORE_EMULATOR_HOST')}`,
   projectId: 'project-test',
 });
 
