@@ -6,6 +6,11 @@
   "bugs": {
     "url": "https://github.com/ehacke/simple-cached-firestore/issues"
   },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
+  },
   "dependencies": {
     "@ehacke/redis": "^1.0.2",
     "@types/bluebird": "^3.5.28",
@@ -47,6 +52,7 @@
     "chai": "^4.2.0",
     "commitizen": "^4.0.3",
     "commitlint": "^8.3.5",
+    "cz-conventional-changelog": "^3.1.0",
     "dotenv": "^8.2.0",
     "eslint": "^6.8.0",
     "eslint-import-resolver-typescript": "^2.0.0",
@@ -127,10 +133,12 @@
     "url": "git+https://github.com/ehacke/simple-cached-firestore.git"
   },
   "scripts": {
-    "build": "rm -rf ./dist && tsc -p tsconfig.build.json && sed -i 's/\"files\":/\"_files\":/' lib/package.json",
+    "build": "rm -rf ./dist && tsc -p tsconfig.build.json && sed -i 's/\"files\":/\"_files\":/' dist/package.json",
+    "commit": "git-cz",
     "docs": "typedoc --plugin typedoc-plugin-markdown --readme none --exclude \"tests/**/*.+(unit|it).+(ts|js)\"",
     "integration": "nyc mocha --recursive -r source-map-support/register -r ts-node/register -r tsconfig-paths/register --use_strict --exit \"tests/**/*.it.+(ts|js)\"",
     "lint": "fixpack && prettier-eslint --write && eslint --fix \"**/*.{js,ts}\"",
+    "postpublish": "git push",
     "prepare": "fixpack",
     "prepublishOnly": "npm run build",
     "test": "nyc mocha --recursive -r source-map-support/register -r ts-node/register -r tsconfig-paths/register --use_strict --exit \"tests/**/*.+(unit|it).+(ts|js)\"",
