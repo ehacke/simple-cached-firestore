@@ -18,6 +18,8 @@
     "@types/redlock": "^4.0.1",
     "@types/traverse": "^0.6.32",
     "bluebird": "^3.7.2",
+    "bunyan": "1.8.12",
+    "bunyan-prettystream": "0.1.3",
     "clean-deep": "^3.3.0",
     "err": "^2.1.11",
     "fast-json-stable-stringify": "^2.1.0",
@@ -25,9 +27,6 @@
     "http-status": "^1.4.2",
     "lodash": "^4.17.15",
     "luxon": "^1.22.0",
-    "pino": "^5.16.0",
-    "pino-pretty": "^3.6.0",
-    "redlock": "^4.1.0",
     "traverse": "^0.6.6",
     "ts-essentials": "^6.0.1"
   },
@@ -69,7 +68,7 @@
     "tsconfig-paths": "^3.9.0",
     "typedoc": "^0.16.9",
     "typedoc-plugin-markdown": "^2.2.16",
-    "typescript": "^3.7.5",
+    "typescript": "^3.8.2",
     "typings": "^2.1.1"
   },
   "files": [
@@ -127,11 +126,12 @@
     "url": "git+https://github.com/ehacke/simple-cached-firestore.git"
   },
   "scripts": {
-    "build": "rm -rf ./dist && tsc -p tsconfig.build.json",
+    "build": "npm shrinkwrap && rm -rf ./dist && tsc -p tsconfig.build.json && sed -i 's/\"files\":/\"_files\":/' lib/package.json",
     "docs": "typedoc --plugin typedoc-plugin-markdown --readme none --exclude \"tests/**/*.+(unit|it).+(ts|js)\"",
     "integration": "nyc mocha --recursive -r source-map-support/register -r ts-node/register -r tsconfig-paths/register --use_strict --exit \"tests/**/*.it.+(ts|js)\"",
     "lint": "fixpack && prettier-eslint --write && eslint --fix \"**/*.{js,ts}\"",
-    "prepare": "fixpack && npm run build",
+    "prepare": "fixpack",
+    "prepublishOnly": "npm run build",
     "test": "nyc mocha --recursive -r source-map-support/register -r ts-node/register -r tsconfig-paths/register --use_strict --exit \"tests/**/*.+(unit|it).+(ts|js)\"",
     "unit": "nyc mocha --recursive -r source-map-support/register -r ts-node/register -r tsconfig-paths/register --use_strict --exit \"tests/**/*.unit.+(ts|js)\""
   },

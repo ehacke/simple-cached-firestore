@@ -6,11 +6,12 @@ import stringify from 'fast-json-stable-stringify';
 import admin from 'firebase-admin';
 import flatten from 'flat';
 import HTTP_STATUS from 'http-status';
-import { defaultsDeep, isDate, reduce } from 'lodash';
+import { isDate, reduce } from 'lodash';
 import { DateTime } from 'luxon';
-import pino from 'pino';
 import traverse, { TraverseContext } from 'traverse';
 import { DeepPartial } from 'ts-essentials';
+
+import log from './logger';
 
 export enum FILTER_OPERATORS {
   GT = '>',
@@ -56,17 +57,6 @@ export interface DalModel {
 interface ServicesInterface {
   firestore: admin.firestore.Firestore;
   redis: Redis;
-  log?: pino.Logger | undefined;
-}
-
-interface InternalServicesInterface {
-  firestore: admin.firestore.Firestore;
-  redis: Redis;
-  log: pino.Logger;
-}
-
-interface ConfigInterface {
-  logConfig?: pino.LoggerOptions;
 }
 
 export interface FirestoreConfigInterface<T extends DalModel> {
@@ -99,15 +89,10 @@ export class Firestore<T extends DalModel> extends Cached<T> {
    * @param {ServicesInterface} services
    * @param {FirestoreConfigInterface} config
    */
-  constructor(services: ServicesInterface, config?: ConfigInterface) {
+  constructor(services: ServicesInterface) {
     super();
 
-    const logOptions = defaultsDeep({}, config?.logConfig, { name: 'firestore', prettyPrint: { colorize: true } });
-
-    this.services = {
-      ...services,
-      log: pino(logOptions),
-    };
+    this.services = services;
   }
 
   /**
@@ -155,7 +140,7 @@ export class Firestore<T extends DalModel> extends Cached<T> {
     }
   }
 
-  readonly services: InternalServicesInterface;
+  readonly services: ServicesInterface;
 
   private config?: FirestoreConfigInterface<T>;
 
@@ -279,8 +264,8 @@ export class Firestore<T extends DalModel> extends Cached<T> {
       if (!result) await this.cache.del(id);
       return result;
     } catch (error) {
-      this.services.log.error(`Error while reading from db: ${error.message}`);
-      this.services.log.error('Data: ', data);
+      log.error(`Error while reading from db: ${error.message}`);
+      log.error('Data: ', data);
       throw error;
     }
   }

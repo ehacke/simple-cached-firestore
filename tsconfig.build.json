@@ -1,4 +1,4 @@
 {
   "extends": "./tsconfig.base.json",
-  "files": ["./index.ts", "./firestore.ts"]
+  "files": ["./index.ts", "./firestore.ts", "./logger.ts"]
 }
