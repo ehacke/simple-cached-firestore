@@ -91,7 +91,8 @@
   "license": "MIT",
   "lint-staged": {
     "package.json": [
-      "fixpack"
+      "fixpack",
+      "npm shrinkwrap"
     ],
     "**/*.js, **/*.ts": [
       "prettier-eslint --write",
@@ -126,7 +127,7 @@
     "url": "git+https://github.com/ehacke/simple-cached-firestore.git"
   },
   "scripts": {
-    "build": "npm shrinkwrap && rm -rf ./dist && tsc -p tsconfig.build.json && sed -i 's/\"files\":/\"_files\":/' lib/package.json",
+    "build": "rm -rf ./dist && tsc -p tsconfig.build.json && sed -i 's/\"files\":/\"_files\":/' lib/package.json",
     "docs": "typedoc --plugin typedoc-plugin-markdown --readme none --exclude \"tests/**/*.+(unit|it).+(ts|js)\"",
     "integration": "nyc mocha --recursive -r source-map-support/register -r ts-node/register -r tsconfig-paths/register --use_strict --exit \"tests/**/*.it.+(ts|js)\"",
     "lint": "fixpack && prettier-eslint --write && eslint --fix \"**/*.{js,ts}\"",
