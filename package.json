@@ -97,8 +97,7 @@
   "license": "MIT",
   "lint-staged": {
     "package.json": [
-      "fixpack",
-      "npm shrinkwrap"
+      "fixpack"
     ],
     "**/*.js, **/*.ts": [
       "prettier-eslint --write",
