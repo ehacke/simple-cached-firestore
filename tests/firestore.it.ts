@@ -46,7 +46,7 @@ class TestClass {
 const config = {
   collection: 'collection-foo',
   convertFromDb: (params) => new TestClass(params),
-  convertForDb: (params) => ({ ...params }),
+  convertForDb: (params) => params,
 };
 
 const defaultServices = {
