@@ -325,7 +325,7 @@ export class Firestore<T extends DalModel> extends Cached<T> {
   async patch(id: string, patchUpdate: DeepPartial<T>, curDate = DateTime.utc().toJSDate()): Promise<T> {
     if (!this.config) throw new Err(CONFIG_ERROR);
 
-    const flattened = flatten(Firestore.cleanModel({ ...(await this.config.convertForDb(patchUpdate)), updatedAt: curDate }));
+    const flattened = flatten(Firestore.cleanModel({ ...(await this.config.convertForDb(patchUpdate)), updatedAt: curDate }), { safe: true });
 
     await this.cache.del(id);
     await this.cache.delLists();
