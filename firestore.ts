@@ -12,6 +12,7 @@ import traverse, { TraverseContext } from 'traverse';
 import { DeepPartial } from 'ts-essentials';
 
 import log from './logger';
+import { classToPlain } from "class-transformer";
 
 export enum FILTER_OPERATORS {
   GT = '>',
@@ -102,7 +103,7 @@ export class Firestore<T extends DalModel> extends Cached<T> {
    */
   static translateDatesToTimestamps(obj): any {
     // eslint-disable-next-line array-callback-return
-    return traverse(obj).map(function(this: TraverseContext, property): void {
+    return traverse(classToPlain(obj)).map(function(this: TraverseContext, property): void {
       if (isDate(property)) {
         this.update(admin.firestore.Timestamp.fromDate(property));
       }
@@ -216,7 +217,7 @@ export class Firestore<T extends DalModel> extends Cached<T> {
     await this.services.firestore
       .collection(this.config.collection)
       .doc(instance.id)
-      .create(Firestore.translateDatesToTimestamps({ ...data }));
+      .create(Firestore.translateDatesToTimestamps(data));
 
     await this.cache.delLists();
     await this.cache.set(instance.id, instance);
@@ -325,7 +326,7 @@ export class Firestore<T extends DalModel> extends Cached<T> {
   async patch(id: string, patchUpdate: DeepPartial<T>, curDate = DateTime.utc().toJSDate()): Promise<T> {
     if (!this.config) throw new Err(CONFIG_ERROR);
 
-    const flattened = flatten(Firestore.cleanModel({ ...(await this.config.convertForDb({ ...patchUpdate })), updatedAt: curDate }), { safe: true });
+    const flattened = flatten(Firestore.cleanModel({ ...(await this.config.convertForDb(patchUpdate)), updatedAt: curDate }), { safe: true });
 
     await this.cache.del(id);
     await this.cache.delLists();
