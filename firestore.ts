@@ -334,7 +334,7 @@ export class Firestore<T extends DalModel> extends Cached<T> {
     await this.services.firestore
       .collection(this.config.collection)
       .doc(id)
-      .update(flattened as any);
+      .update(Firestore.translateDatesToTimestamps(flattened as any));
 
     const instance = await this.rawGet(id);
     await this.cache.delLists();

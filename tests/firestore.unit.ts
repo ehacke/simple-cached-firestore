@@ -18,12 +18,12 @@ class TestClass {
     this.foo = params.foo;
     this.bar = params.bar;
     this.deep = params.deep;
-    this.classy = new DeepClass(params.classy);
+    this.classy = params.classy.map((classy) => new DeepClass(classy));
     this.createdAt = params.createdAt;
     this.updatedAt = params.updatedAt;
   }
 
-  classy: DeepClass;
+  classy: DeepClass[];
 
   id: string;
 
@@ -60,20 +60,19 @@ describe('firestore unit tests', () => {
       id: 'foo-id',
       foo: 'something',
       bar: 'baz',
-      classy: { foo: 'something' },
+      classy: [{ foo: 'something' }, { foo: 'something-2' }],
       createdAt: curDate,
       updatedAt: curDate,
     });
 
     const converted = Firestore.translateDatesToTimestamps(testInstance);
-
     expect(isPlainObject(converted)).to.eql(true);
-    expect(isPlainObject(converted.classy)).to.eql(true);
+    expect(isPlainObject(converted.classy[0])).to.eql(true);
     expect(JSON.parse(JSON.stringify(converted))).to.eql({
       id: 'foo-id',
       foo: 'something',
       bar: 'baz',
-      classy: { foo: 'something' },
+      classy: [{ foo: 'something' }, { foo: 'something-2' }],
       createdAt: { _seconds: 1546300800, _nanoseconds: 0 },
       updatedAt: { _seconds: 1546300800, _nanoseconds: 0 },
     });
