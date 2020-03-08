@@ -1,5 +1,6 @@
 import { Cached, Redis } from '@ehacke/redis';
 import Bluebird from 'bluebird';
+import { classToPlain } from 'class-transformer';
 import cleanDeep from 'clean-deep';
 import Err from 'err';
 import stringify from 'fast-json-stable-stringify';
@@ -12,7 +13,6 @@ import traverse, { TraverseContext } from 'traverse';
 import { DeepPartial } from 'ts-essentials';
 
 import log from './logger';
-import { classToPlain } from "class-transformer";
 
 export enum FILTER_OPERATORS {
   GT = '>',
@@ -88,7 +88,6 @@ const CONFIG_ERROR = 'firestore instance not configured';
 export class Firestore<T extends DalModel> extends Cached<T> {
   /**
    * @param {ServicesInterface} services
-   * @param {FirestoreConfigInterface} config
    */
   constructor(services: ServicesInterface) {
     super();
@@ -102,7 +101,7 @@ export class Firestore<T extends DalModel> extends Cached<T> {
    * @returns {any}
    */
   static translateDatesToTimestamps(obj): any {
-    // eslint-disable-next-line array-callback-return
+    // eslint-disable-next-line array-callback-return,func-names
     return traverse(classToPlain(obj)).map(function(this: TraverseContext, property): void {
       if (isDate(property)) {
         this.update(admin.firestore.Timestamp.fromDate(property));
@@ -116,7 +115,7 @@ export class Firestore<T extends DalModel> extends Cached<T> {
    * @returns {any}
    */
   static translateTimestampsToDates(obj): any {
-    // eslint-disable-next-line array-callback-return
+    // eslint-disable-next-line array-callback-return,func-names
     return traverse(obj).map(function(this: TraverseContext, property): void {
       if (property instanceof admin.firestore.Timestamp) {
         this.update((property as admin.firestore.Timestamp).toDate());
