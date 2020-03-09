@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 set -e
-docker-compose down
-docker-compose up -d
+COMPOSE_PROJECT_NAME=local docker-compose down
+COMPOSE_PROJECT_NAME=local docker-compose up -d
