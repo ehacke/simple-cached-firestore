@@ -7,12 +7,26 @@ import { FILTER_OPERATORS, Firestore } from '@/firestore';
 import { db, deleteCollection } from './firestore';
 import redis from './mockRedis';
 
+class DeepClass {
+  constructor(params) {
+    this.thing1 = params?.thing1;
+    this.thing2 = params?.thing2;
+    this.arrayThing = params?.arrayThing;
+  }
+
+  thing1: string;
+
+  thing2: string;
+
+  arrayThing?: { foo: string }[];
+}
+
 class TestClass {
   constructor(params) {
     this.id = params.id;
     this.foo = params.foo;
     this.bar = params.bar;
-    this.deep = params.deep;
+    this.deep = new DeepClass(params.deep);
     this.createdAt = params.createdAt;
     this.updatedAt = params.updatedAt;
   }
@@ -23,11 +37,7 @@ class TestClass {
 
   bar: string;
 
-  deep: {
-    thing1: string;
-    thing2: string;
-    arrayThing?: { foo: string }[];
-  };
+  deep: DeepClass;
 
   createdAt: Date;
 
@@ -103,6 +113,32 @@ describe('firestore integration tests', function() {
     expect(found).to.eql(testInstance);
   });
 
+  it('create deep model in db with undefined', async () => {
+    const ds = new Firestore<TestClass>(defaultServices);
+    ds.configure(config);
+
+    const curDate = DateTime.fromISO('2019-01-01T00:00:00.000Z').toJSDate();
+
+    const testInstance = new TestClass({
+      id: 'foo-id',
+      foo: 'something',
+      bar: 'baz',
+      deep: {
+        thing1: '1',
+        thing2: undefined,
+      },
+      createdAt: curDate,
+      updatedAt: curDate,
+    });
+
+    const created = await ds.create(testInstance);
+
+    const found = await ds.getOrThrow(testInstance.id);
+
+    expect(found).to.eql(created);
+    expect(found).to.eql(testInstance);
+  });
+
   it('dont create model in db if createdAt or updatedAt is not Date', async () => {
     const ds = new Firestore<TestClass>(defaultServices);
     ds.configure(config);
@@ -167,15 +203,12 @@ describe('firestore integration tests', function() {
     expect(spied.delList.callCount).to.eql(0);
     expect(spied.delLists.callCount).to.eql(2);
 
-    const found = await ds.getOrThrow(testInstance.id);
-
     expect(updated.foo).to.eql('new-foo');
     expect(updated.bar).to.eql('baz');
     expect(updated.deep).to.eql({
       thing1: '1',
       thing2: '9',
     });
-    expect(found).to.eql(updated);
   });
 
   it('patch deep model in db with arrays', async () => {
@@ -220,6 +253,45 @@ describe('firestore integration tests', function() {
       thing2: '2',
     });
     expect(found).to.eql(updated);
+  });
+
+  it('patch deep model in db with undefined', async () => {
+    const ds = new Firestore<TestClass>(defaultServices);
+    ds.configure(config);
+    // @ts-ignore
+    const spied = sinon.spy<Cache>(ds.cache);
+
+    const curDate = DateTime.fromISO('2019-01-01T00:00:00.000Z').toJSDate();
+
+    const testInstance = new TestClass({
+      id: 'foo-id',
+      foo: 'something',
+      bar: 'baz',
+      deep: {
+        thing1: '1',
+      },
+      createdAt: curDate,
+      updatedAt: curDate,
+    });
+
+    const created = await ds.create(testInstance);
+    resetSpies(spied);
+    const updated = await ds.patch(created.id, { foo: 'new-foo', deep: { arrayThing: [{ foo: 'yo' }], thing2: undefined } }, curDate);
+
+    expect(spied.get.callCount).to.eql(0);
+    expect(spied.set.callCount).to.eql(1);
+    expect(spied.del.callCount).to.eql(1);
+    expect(spied.setList.callCount).to.eql(0);
+    expect(spied.getList.callCount).to.eql(0);
+    expect(spied.delList.callCount).to.eql(0);
+    expect(spied.delLists.callCount).to.eql(2);
+
+    expect(updated.foo).to.eql('new-foo');
+    expect(updated.bar).to.eql('baz');
+    expect(updated.deep).to.eql({
+      thing1: '1',
+      arrayThing: [{ foo: 'yo' }],
+    });
   });
 
   it('update', async () => {

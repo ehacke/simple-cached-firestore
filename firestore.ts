@@ -150,7 +150,7 @@ export class Firestore<T extends DalModel> extends Cached<T> {
    * @returns {{}}
    */
   private static cleanModel(model: { [k: string]: any }): { [k: string]: any } {
-    model = { ...model };
+    model = classToPlain(model);
 
     if (model.createdAt) delete model.createdAt;
     if (model.id) delete model.id;
@@ -200,7 +200,7 @@ export class Firestore<T extends DalModel> extends Cached<T> {
     await instance.validate();
 
     // I don't know why that casting is necessary
-    const data = cleanDeep(await this.config.convertForDb(instance as DeepPartial<T>), CLEAN_CONFIG);
+    const data = await this.config.convertForDb(instance as DeepPartial<T>);
 
     if (!isDate(data.createdAt)) {
       throw new Err('createdAt must be a Date');
@@ -213,10 +213,12 @@ export class Firestore<T extends DalModel> extends Cached<T> {
     await this.cache.del(instance.id);
     await this.cache.delLists();
 
+    const cleanedData = cleanDeep(Firestore.translateDatesToTimestamps(data), CLEAN_CONFIG);
+
     await this.services.firestore
       .collection(this.config.collection)
       .doc(instance.id)
-      .create(Firestore.translateDatesToTimestamps(data));
+      .create(cleanedData);
 
     await this.cache.delLists();
     await this.cache.set(instance.id, instance);
@@ -325,7 +327,7 @@ export class Firestore<T extends DalModel> extends Cached<T> {
   async patch(id: string, patchUpdate: DeepPartial<T>, curDate = DateTime.utc().toJSDate()): Promise<T> {
     if (!this.config) throw new Err(CONFIG_ERROR);
 
-    const flattened = flatten(Firestore.cleanModel({ ...(await this.config.convertForDb(patchUpdate)), updatedAt: curDate }), { safe: true });
+    const flattened = Firestore.cleanModel(flatten({ ...(await this.config.convertForDb(patchUpdate)), updatedAt: curDate }, { safe: true }));
 
     await this.cache.del(id);
     await this.cache.delLists();
