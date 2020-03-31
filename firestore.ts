@@ -102,7 +102,7 @@ export class Firestore<T extends DalModel> extends Cached<T> {
    */
   static translateDatesToTimestamps(obj): any {
     // eslint-disable-next-line array-callback-return,func-names
-    return traverse(classToPlain(obj)).map(function(this: TraverseContext, property): void {
+    return traverse(classToPlain(obj)).map(function (this: TraverseContext, property): void {
       if (isDate(property)) {
         this.update(admin.firestore.Timestamp.fromDate(property));
       }
@@ -116,7 +116,7 @@ export class Firestore<T extends DalModel> extends Cached<T> {
    */
   static translateTimestampsToDates(obj): any {
     // eslint-disable-next-line array-callback-return,func-names
-    return traverse(obj).map(function(this: TraverseContext, property): void {
+    return traverse(obj).map(function (this: TraverseContext, property): void {
       if (property instanceof admin.firestore.Timestamp) {
         this.update((property as admin.firestore.Timestamp).toDate());
       }
@@ -215,10 +215,7 @@ export class Firestore<T extends DalModel> extends Cached<T> {
 
     const cleanedData = cleanDeep(Firestore.translateDatesToTimestamps(data), CLEAN_CONFIG);
 
-    await this.services.firestore
-      .collection(this.config.collection)
-      .doc(instance.id)
-      .create(cleanedData);
+    await this.services.firestore.collection(this.config.collection).doc(instance.id).create(cleanedData);
 
     await this.cache.delLists();
     await this.cache.set(instance.id, instance);
@@ -253,10 +250,7 @@ export class Firestore<T extends DalModel> extends Cached<T> {
   private async internalGet(id: string): Promise<T | null> {
     if (!this.config) throw new Err(CONFIG_ERROR);
 
-    const snapshot = await this.services.firestore
-      .collection(this.config.collection)
-      .doc(id)
-      .get();
+    const snapshot = await this.services.firestore.collection(this.config.collection).doc(id).get();
     if (!snapshot.exists) return null;
 
     const data = Firestore.translateTimestampsToDates(snapshot.data());
@@ -280,10 +274,7 @@ export class Firestore<T extends DalModel> extends Cached<T> {
   async rawGet(id: string): Promise<any | null> {
     if (!this.config) throw new Err(CONFIG_ERROR);
 
-    const snapshot = await this.services.firestore
-      .collection(this.config.collection)
-      .doc(id)
-      .get();
+    const snapshot = await this.services.firestore.collection(this.config.collection).doc(id).get();
     if (!snapshot.exists) return null;
 
     const data = Firestore.translateTimestampsToDates(snapshot.data());
@@ -337,7 +328,7 @@ export class Firestore<T extends DalModel> extends Cached<T> {
       .doc(id)
       .update(Firestore.translateDatesToTimestamps(flattened as any));
 
-    const instance = await this.rawGet(id);
+    const instance = await this.config.convertFromDb(await this.rawGet(id));
     await this.cache.delLists();
     await this.cache.set(id, instance);
 
@@ -372,10 +363,7 @@ export class Firestore<T extends DalModel> extends Cached<T> {
   private async internalRemove(id: string): Promise<void> {
     if (!this.config) throw new Err(CONFIG_ERROR);
 
-    await this.services.firestore
-      .collection(this.config.collection)
-      .doc(id)
-      .delete();
+    await this.services.firestore.collection(this.config.collection).doc(id).delete();
   }
 
   /**
@@ -396,10 +384,7 @@ export class Firestore<T extends DalModel> extends Cached<T> {
     // I don't know why that casting is necessary
     const updated = Firestore.cleanModel({ ...(await this.config.convertForDb(instance as DeepPartial<T>)), updatedAt: curDate });
 
-    await this.services.firestore
-      .collection(this.config.collection)
-      .doc(id)
-      .set(Firestore.translateDatesToTimestamps(updated));
+    await this.services.firestore.collection(this.config.collection).doc(id).set(Firestore.translateDatesToTimestamps(updated));
 
     const updatedInstance = await this.config.convertFromDb({ id, ...updated });
     await this.cache.del(id);

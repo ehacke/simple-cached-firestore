@@ -75,7 +75,7 @@ const resetSpies = (spied) => {
   spied.delLists.resetHistory();
 };
 
-describe('firestore integration tests', function() {
+describe('firestore integration tests', function () {
   this.timeout(5000);
 
   beforeEach(async () => deleteCollection('collection-foo'));
@@ -206,6 +206,7 @@ describe('firestore integration tests', function() {
     expect(updated.foo).to.eql('new-foo');
     expect(updated.bar).to.eql('baz');
     expect(updated.deep).to.eql({
+      arrayThing: undefined,
       thing1: '1',
       thing2: '9',
     });
@@ -290,6 +291,7 @@ describe('firestore integration tests', function() {
     expect(updated.bar).to.eql('baz');
     expect(updated.deep).to.eql({
       thing1: '1',
+      thing2: undefined,
       arrayThing: [{ foo: 'yo' }],
     });
   });
