@@ -4,6 +4,7 @@ import sinon from 'sinon';
 
 import { FILTER_OPERATORS, Firestore } from '@/firestore';
 
+import { toDate } from '../utils';
 import { db, deleteCollection } from './firestore';
 import redis from './mockRedis';
 
@@ -27,8 +28,8 @@ class TestClass {
     this.foo = params.foo;
     this.bar = params.bar;
     this.deep = new DeepClass(params.deep);
-    this.createdAt = params.createdAt;
-    this.updatedAt = params.updatedAt;
+    this.createdAt = toDate(params.createdAt);
+    this.updatedAt = toDate(params.updatedAt);
   }
 
   id: string;

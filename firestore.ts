@@ -61,10 +61,14 @@ interface ServicesInterface {
 }
 
 export interface FirestoreConfigInterface<T extends DalModel> {
-  readTimestampsToDates: boolean;
+  readTimestampsToDates?: boolean;
   collection: string;
   convertForDb(instance: DeepPartial<T>): any;
   convertFromDb(params: any): T | Promise<T>;
+}
+
+interface InternalFirestoreConfigInterface<T extends DalModel> extends Omit<FirestoreConfigInterface<T>, 'readTimestampsToDates'> {
+  readTimestampsToDates: boolean;
 }
 
 export interface FirestoreCacheConfigInterface<T extends DalModel> {
@@ -131,7 +135,7 @@ export class Firestore<T extends DalModel> extends Cached<T> {
    * @returns {void}
    */
   configure(config: FirestoreConfigInterface<T>, cacheConfig?: FirestoreCacheConfigInterface<T>): void {
-    this.config = config;
+    this.config = { readTimestampsToDates: false, ...config };
 
     const { redis } = this.services;
 
@@ -143,7 +147,7 @@ export class Firestore<T extends DalModel> extends Cached<T> {
 
   readonly services: ServicesInterface;
 
-  private config?: FirestoreConfigInterface<T>;
+  private config?: InternalFirestoreConfigInterface<T>;
 
   /**
    * Clean model of common properties that shouldn't be written
