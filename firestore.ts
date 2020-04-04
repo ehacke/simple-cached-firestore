@@ -61,6 +61,7 @@ interface ServicesInterface {
 }
 
 export interface FirestoreConfigInterface<T extends DalModel> {
+  readTimestampsToDates: boolean;
   collection: string;
   convertForDb(instance: DeepPartial<T>): any;
   convertFromDb(params: any): T | Promise<T>;
@@ -253,7 +254,7 @@ export class Firestore<T extends DalModel> extends Cached<T> {
     const snapshot = await this.services.firestore.collection(this.config.collection).doc(id).get();
     if (!snapshot.exists) return null;
 
-    const data = Firestore.translateTimestampsToDates(snapshot.data());
+    const data = this.config.readTimestampsToDates ? Firestore.translateTimestampsToDates(snapshot.data()) : snapshot.data();
 
     try {
       const result = data ? await this.config.convertFromDb({ id, ...data }) : null;
@@ -277,7 +278,7 @@ export class Firestore<T extends DalModel> extends Cached<T> {
     const snapshot = await this.services.firestore.collection(this.config.collection).doc(id).get();
     if (!snapshot.exists) return null;
 
-    const data = Firestore.translateTimestampsToDates(snapshot.data());
+    const data = this.config.readTimestampsToDates ? Firestore.translateTimestampsToDates(snapshot.data()) : snapshot.data();
     return data ? { id, ...data } : null;
   }
 
@@ -409,7 +410,10 @@ export class Firestore<T extends DalModel> extends Cached<T> {
 
     querySnapshot.forEach((snapshot) => {
       if (!snapshot.exists) return;
-      snapshots.push({ id: snapshot.id, ...Firestore.translateTimestampsToDates(snapshot.data()) });
+      if (!this.config) throw new Err(CONFIG_ERROR);
+
+      const data = this.config.readTimestampsToDates ? Firestore.translateTimestampsToDates(snapshot.data()) : snapshot.data();
+      snapshots.push({ id: snapshot.id, ...data });
     });
 
     const results = (await Bluebird.map(snapshots, (snapshot) => {
@@ -434,7 +438,9 @@ export class Firestore<T extends DalModel> extends Cached<T> {
     querySnapshot.forEach((snapshot) => {
       if (!snapshot.exists) return;
       if (!this.config) throw new Err(CONFIG_ERROR);
-      results.push({ id: snapshot.id, ...Firestore.translateTimestampsToDates(snapshot.data()) });
+
+      const data = this.config.readTimestampsToDates ? Firestore.translateTimestampsToDates(snapshot.data()) : snapshot.data();
+      results.push({ id: snapshot.id, ...data });
     });
 
     return results;
