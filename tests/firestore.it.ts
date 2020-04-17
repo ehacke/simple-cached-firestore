@@ -314,10 +314,12 @@ describe('firestore integration tests', function () {
 
     const created = await ds.create(testInstance);
     resetSpies(spied);
-    const updated = await ds.update(created.id, new TestClass({ ...testInstance, foo: 'new-foo' }), curDate);
 
-    expect(spied.get.callCount).to.eql(0);
-    expect(spied.set.callCount).to.eql(1);
+    const update = new TestClass({ ...testInstance, foo: 'new-foo' });
+    const updated = await ds.update(created.id, update, curDate);
+
+    expect(spied.get.callCount).to.eql(1); // Get createdAt from previous
+    expect(spied.set.callCount).to.eql(2);
     expect(spied.del.callCount).to.eql(2);
     expect(spied.setList.callCount).to.eql(0);
     expect(spied.getList.callCount).to.eql(0);
@@ -328,6 +330,7 @@ describe('firestore integration tests', function () {
 
     expect(updated.foo).to.eql('new-foo');
     expect(updated.bar).to.eql('baz');
+    expect(updated).to.eql(update);
     expect(found).to.eql(updated);
   });
 

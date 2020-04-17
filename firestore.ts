@@ -381,8 +381,11 @@ export class Firestore<T extends DalModel> extends Cached<T> {
     await this.cache.del(id);
     await this.cache.delLists();
 
+    // Retain the original createdAt, and ensure it exists
+    const { createdAt } = await this.getOrThrow(id);
+
     // I don't know why that casting is necessary
-    const updated = Firestore.cleanModel({ ...(await this.config.convertForDb(instance as DeepPartial<T>)), updatedAt: curDate });
+    const updated = { ...Firestore.cleanModel({ ...(await this.config.convertForDb(instance as DeepPartial<T>)), updatedAt: curDate }), createdAt };
 
     await this.services.firestore.collection(this.config.collection).doc(id).set(Firestore.translateDatesToTimestamps(updated));
 
