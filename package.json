@@ -1,7 +1,7 @@
 {
   "name": "simple-cached-firestore",
   "description": "Firestore wrapper with simplified API and optional caching built in",
-  "version": "3.0.2",
+  "version": "3.1.0",
   "author": "Eric Hacke",
   "bugs": {
     "url": "https://github.com/ehacke/simple-cached-firestore/issues"
