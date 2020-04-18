@@ -7,7 +7,7 @@ import stringify from 'fast-json-stable-stringify';
 import admin from 'firebase-admin';
 import flatten from 'flat';
 import HTTP_STATUS from 'http-status';
-import { isDate, reduce } from 'lodash';
+import { isDate, isNil, reduce } from 'lodash';
 import { DateTime } from 'luxon';
 import traverse, { TraverseContext } from 'traverse';
 import { DeepPartial } from 'ts-essentials';
@@ -46,6 +46,8 @@ export interface QueryInterface {
   sort?: ListSortInterface;
   offset?: number;
   limit?: number;
+  before?: DalModelValue;
+  after?: DalModelValue;
 }
 
 export interface DalModel {
@@ -163,13 +165,20 @@ export class Firestore<T extends DalModel> extends Cached<T> {
     return cleanDeep(model, CLEAN_CONFIG);
   }
 
+  /* eslint-disable sonarjs/cognitive-complexity */
   /**
    * Build firestore query from structured query
+   * NOTE: Firestore doesn't work as expected when you combine endBefore and limit, and this corrects that
+   *
    * @param {QueryInterface} query
    * @returns {Query}
    */
-  private getQuerySnapshot(query: QueryInterface): Promise<admin.firestore.QuerySnapshot> {
+  private async getQuerySnapshot(query: QueryInterface): Promise<{ reverse: boolean; querySnapshot: admin.firestore.QuerySnapshot }> {
     if (!this.config) throw new Err(CONFIG_ERROR);
+
+    let reverse = false;
+
+    query = Firestore.translateDatesToTimestamps(query);
 
     let ref = this.services.firestore.collection(this.config.collection) as any;
 
@@ -184,15 +193,44 @@ export class Firestore<T extends DalModel> extends Cached<T> {
     }
 
     if (query.sort) {
-      ref = ref.orderBy(query.sort.property, query.sort.direction);
+      if (query.before && query.limit) {
+        ref = ref.orderBy(query.sort.property, query.sort.direction === SORT_DIRECTION.DESC ? SORT_DIRECTION.ASC : SORT_DIRECTION.DESC);
+        reverse = true;
+      } else {
+        ref = ref.orderBy(query.sort.property, query.sort.direction);
+      }
+    }
+
+    if (!isNil(query.before) && !isNil(query.after)) {
+      throw new Err('cannot provide both before and after for pagination');
+    }
+
+    if ((!isNil(query.before) || !isNil(query.after)) && !query.sort) {
+      throw new Err('if before or after is provided, must provide sort');
+    }
+
+    if (query.before) {
+      if (reverse) {
+        ref = ref.startAfter(query.before);
+      } else {
+        ref = ref.endBefore(query.before);
+      }
+    }
+
+    if (query.after) {
+      ref = ref.startAfter(query.after);
     }
 
     if (query.limit) {
       ref = ref.limit(query.limit);
     }
 
-    return ref.get();
+    return {
+      reverse,
+      querySnapshot: await ref.get(),
+    };
   }
+  /* eslint-enable sonarjs/cognitive-complexity */
 
   /**
    * Create instance of model in db
@@ -411,7 +449,7 @@ export class Firestore<T extends DalModel> extends Cached<T> {
     const cacheResults = await this.cache.getList(cacheKey);
     if (cacheResults) return cacheResults;
 
-    const querySnapshot = await this.getQuerySnapshot(query);
+    const { reverse, querySnapshot } = await this.getQuerySnapshot(query);
 
     const snapshots = [] as any[];
 
@@ -428,6 +466,10 @@ export class Firestore<T extends DalModel> extends Cached<T> {
       return this.config.convertFromDb(snapshot);
     })) as T[];
 
+    if (reverse) {
+      results.reverse();
+    }
+
     await this.cache.setList(cacheKey, results);
     return results;
   }
@@ -438,7 +480,7 @@ export class Firestore<T extends DalModel> extends Cached<T> {
    * @returns {Promise<any[]>}
    */
   async rawQuery(query: QueryInterface): Promise<any[]> {
-    const querySnapshot = await this.getQuerySnapshot(query);
+    const { reverse, querySnapshot } = await this.getQuerySnapshot(query);
 
     const results = [] as any[];
 
@@ -450,6 +492,10 @@ export class Firestore<T extends DalModel> extends Cached<T> {
       results.push({ id: snapshot.id, ...data });
     });
 
+    if (reverse) {
+      results.reverse();
+    }
+
     return results;
   }
 
@@ -459,7 +505,7 @@ export class Firestore<T extends DalModel> extends Cached<T> {
    * @returns {Promise<void>}
    */
   async removeByQuery(query: QueryInterface): Promise<string[]> {
-    const querySnapshot = await this.getQuerySnapshot(query);
+    const { reverse, querySnapshot } = await this.getQuerySnapshot(query);
 
     const ids = [] as string[];
 
@@ -469,6 +515,10 @@ export class Firestore<T extends DalModel> extends Cached<T> {
     });
 
     await this.cache.delLists();
+
+    if (reverse) {
+      ids.reverse();
+    }
 
     await Bluebird.map(ids, async (id) => {
       await this.cache.del(id);
