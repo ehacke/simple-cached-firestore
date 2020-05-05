@@ -1,4 +1,4 @@
-import { Cached, Redis } from '@ehacke/redis';
+import { Cached, CacheTimestampInterface, Redis } from '@ehacke/redis';
 import Bluebird from 'bluebird';
 import { classToPlain } from 'class-transformer';
 import cleanDeep from 'clean-deep';
@@ -7,7 +7,7 @@ import stringify from 'fast-json-stable-stringify';
 import admin from 'firebase-admin';
 import flatten from 'flat';
 import HTTP_STATUS from 'http-status';
-import { isDate, isNil, reduce } from 'lodash';
+import { isDate, isNil, reduce, round } from 'lodash';
 import { DateTime } from 'luxon';
 import traverse, { TraverseContext } from 'traverse';
 import { DeepPartial } from 'ts-essentials';
@@ -128,6 +128,19 @@ export class Firestore<T extends DalModel> extends Cached<T> {
         this.update((property as admin.firestore.Timestamp).toDate());
       }
     });
+  }
+
+  /**
+   * Get cache timestamp from firestore timestamp, or fall back to redisTimestamp
+   * @param {FirebaseFirestore.Timestamp} timestamp
+   * @returns {CacheTimestampInterface}
+   */
+  static getCacheTimestamp(timestamp: FirebaseFirestore.Timestamp): CacheTimestampInterface {
+    return {
+      seconds: timestamp.seconds,
+      // eslint-disable-next-line no-magic-numbers
+      microseconds: round(timestamp.nanoseconds / 1000),
+    };
   }
 
   /**
@@ -253,15 +266,11 @@ export class Firestore<T extends DalModel> extends Cached<T> {
       throw new Err('updatedAt must be a Date');
     }
 
-    await this.cache.del(instance.id);
-    await this.cache.delLists();
-
     const cleanedData = cleanDeep(Firestore.translateDatesToTimestamps(data), CLEAN_CONFIG);
-
-    await this.services.firestore.collection(this.config.collection).doc(instance.id).create(cleanedData);
+    const { writeTime } = await this.services.firestore.collection(this.config.collection).doc(instance.id).create(cleanedData);
 
     await this.cache.delLists();
-    await this.cache.set(instance.id, instance);
+    await this.cache.setSafe(instance.id, instance, Firestore.getCacheTimestamp(writeTime));
 
     return instance;
   }
@@ -272,14 +281,14 @@ export class Firestore<T extends DalModel> extends Cached<T> {
    * @returns {Promise<T | null>}
    */
   async get(id: string): Promise<T | null> {
-    let instance = await this.cache.get(id);
-    if (instance) return instance;
-    instance = await this.internalGet(id);
+    const cached = await this.cache.get(id);
+    if (cached) return cached;
+    const { instance, timestamp } = await this.internalGet(id);
 
     if (instance) {
-      await this.cache.set(id, instance);
+      await this.cache.setSafe(id, instance, timestamp);
     } else {
-      await this.cache.del(id);
+      await this.cache.delSafe(id, timestamp);
     }
 
     return instance;
@@ -290,18 +299,27 @@ export class Firestore<T extends DalModel> extends Cached<T> {
    * @param {string} id
    * @returns {Promise<T | null>}
    */
-  private async internalGet(id: string): Promise<T | null> {
+  private async internalGet(id: string): Promise<{ instance: T | null; timestamp: CacheTimestampInterface }> {
     if (!this.config) throw new Err(CONFIG_ERROR);
 
     const snapshot = await this.services.firestore.collection(this.config.collection).doc(id).get();
-    if (!snapshot.exists) return null;
+    const timestamp = Firestore.getCacheTimestamp(snapshot.updateTime || snapshot.createTime || snapshot.readTime);
+
+    if (!snapshot.exists) {
+      return {
+        instance: null,
+        timestamp,
+      };
+    }
 
     const data = this.config.readTimestampsToDates ? Firestore.translateTimestampsToDates(snapshot.data()) : snapshot.data();
 
     try {
       const result = data ? await this.config.convertFromDb({ id, ...data }) : null;
-      if (!result) await this.cache.del(id);
-      return result;
+      return {
+        instance: result,
+        timestamp,
+      };
     } catch (error) {
       log.error(`Error while reading from db: ${error.message}`);
       log.error('Data: ', data);
@@ -315,13 +333,27 @@ export class Firestore<T extends DalModel> extends Cached<T> {
    * @returns {Promise<any | null>}
    */
   async rawGet(id: string): Promise<any | null> {
+    const { raw } = await this.internalRawGet(id);
+    return raw;
+  }
+
+  /**
+   * Get value directly from the db, by-passing cache and convertFromDb
+   * @param {string} id
+   * @returns {Promise<{ instance: any, timestamp: CacheTimestampInterface }>}
+   */
+  private async internalRawGet(id: string): Promise<{ raw: any | null; timestamp: CacheTimestampInterface }> {
     if (!this.config) throw new Err(CONFIG_ERROR);
 
     const snapshot = await this.services.firestore.collection(this.config.collection).doc(id).get();
-    if (!snapshot.exists) return null;
+    const timestamp = Firestore.getCacheTimestamp(snapshot.updateTime || snapshot.createTime || snapshot.readTime);
+    if (!snapshot.exists) return { raw: null, timestamp };
 
     const data = this.config.readTimestampsToDates ? Firestore.translateTimestampsToDates(snapshot.data()) : snapshot.data();
-    return data ? { id, ...data } : null;
+    return {
+      raw: data ? { id, ...data } : null,
+      timestamp,
+    };
   }
 
   /**
@@ -331,11 +363,11 @@ export class Firestore<T extends DalModel> extends Cached<T> {
    * @returns {Promise<T>}
    */
   async getOrThrow(id: string, throw404 = false): Promise<T> {
-    let instance = await this.cache.get(id);
-    if (instance) return instance;
+    const cached = await this.cache.get(id);
+    if (cached) return cached;
 
-    instance = await this.internalGetOrThrow(id, throw404);
-    await this.cache.set(id, instance);
+    const { instance, timestamp } = await this.internalGetOrThrow(id, throw404);
+    await this.cache.setSafe(id, instance, timestamp);
     return instance;
   }
 
@@ -345,10 +377,10 @@ export class Firestore<T extends DalModel> extends Cached<T> {
    * @param {boolean} throw404
    * @returns {Promise<T>}
    */
-  private async internalGetOrThrow(id: string, throw404 = false): Promise<T> {
-    const instance = await this.internalGet(id);
+  private async internalGetOrThrow(id: string, throw404 = false): Promise<{ instance: T; timestamp: CacheTimestampInterface }> {
+    const { instance, timestamp } = await this.internalGet(id);
     if (!instance) throw new Err(`id: ${id} not found`, throw404 ? HTTP_STATUS.NOT_FOUND : HTTP_STATUS.INTERNAL_SERVER_ERROR);
-    return instance;
+    return { instance, timestamp };
   }
 
   /**
@@ -363,17 +395,15 @@ export class Firestore<T extends DalModel> extends Cached<T> {
 
     const flattened = Firestore.cleanModel(flatten({ ...(await this.config.convertForDb(patchUpdate)), updatedAt: curDate }, { safe: true }));
 
-    await this.cache.del(id);
-    await this.cache.delLists();
-
     await this.services.firestore
       .collection(this.config.collection)
       .doc(id)
       .update(Firestore.translateDatesToTimestamps(flattened as any));
 
-    const instance = await this.config.convertFromDb(await this.rawGet(id));
+    const { raw, timestamp } = await this.internalRawGet(id);
+    const instance = await this.config.convertFromDb(raw);
+    await this.cache.setSafe(id, instance, timestamp);
     await this.cache.delLists();
-    await this.cache.set(id, instance);
 
     return instance;
   }
@@ -393,8 +423,8 @@ export class Firestore<T extends DalModel> extends Cached<T> {
    * @returns {Promise<void>}
    */
   async remove(id: string): Promise<void> {
-    await this.internalRemove(id);
-    await this.cache.del(id);
+    const timestamp = await this.internalRemove(id);
+    await this.cache.delSafe(id, timestamp);
     await this.cache.delLists();
   }
 
@@ -403,10 +433,11 @@ export class Firestore<T extends DalModel> extends Cached<T> {
    * @param {string} id
    * @returns {Promise<void>}
    */
-  private async internalRemove(id: string): Promise<void> {
+  private async internalRemove(id: string): Promise<CacheTimestampInterface> {
     if (!this.config) throw new Err(CONFIG_ERROR);
 
-    await this.services.firestore.collection(this.config.collection).doc(id).delete();
+    const { writeTime } = await this.services.firestore.collection(this.config.collection).doc(id).delete();
+    return Firestore.getCacheTimestamp(writeTime);
   }
 
   /**
@@ -421,21 +452,18 @@ export class Firestore<T extends DalModel> extends Cached<T> {
 
     await instance.validate();
 
-    await this.cache.del(id);
-    await this.cache.delLists();
-
     // Retain the original createdAt, and ensure it exists
     const { createdAt } = await this.getOrThrow(id);
 
     // I don't know why that casting is necessary
     const updated = { ...Firestore.cleanModel({ ...(await this.config.convertForDb(instance as DeepPartial<T>)), updatedAt: curDate }), createdAt };
 
-    await this.services.firestore.collection(this.config.collection).doc(id).set(Firestore.translateDatesToTimestamps(updated));
+    const { writeTime } = await this.services.firestore.collection(this.config.collection).doc(id).set(Firestore.translateDatesToTimestamps(updated));
+    const timestamp = Firestore.getCacheTimestamp(writeTime);
 
     const updatedInstance = await this.config.convertFromDb({ id, ...updated });
-    await this.cache.del(id);
+    await this.cache.setSafe(id, updatedInstance, timestamp);
     await this.cache.delLists();
-    await this.cache.set(id, updatedInstance);
     return updatedInstance;
   }
 
@@ -470,7 +498,8 @@ export class Firestore<T extends DalModel> extends Cached<T> {
       results.reverse();
     }
 
-    await this.cache.setList(cacheKey, results);
+    const timestamp = Firestore.getCacheTimestamp(querySnapshot.readTime);
+    await this.cache.setListSafe(cacheKey, results, timestamp);
     return results;
   }
 
@@ -521,8 +550,8 @@ export class Firestore<T extends DalModel> extends Cached<T> {
     }
 
     await Bluebird.map(ids, async (id) => {
-      await this.cache.del(id);
-      await this.internalRemove(id);
+      const timestamp = await this.internalRemove(id);
+      await this.cache.delSafe(id, timestamp);
       return id;
     });
 

@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import { DateTime } from 'luxon';
 import sinon from 'sinon';
 
-import { FILTER_OPERATORS, Firestore, SORT_DIRECTION } from '@/firestore';
+import { FILTER_OPERATORS, Firestore } from '@/firestore';
 
 import { toDate } from '../utils';
 import { db, deleteCollection } from './firestore';
@@ -68,11 +68,11 @@ const defaultServices = {
 
 const resetSpies = (spied) => {
   spied.get.resetHistory();
-  spied.set.resetHistory();
-  spied.del.resetHistory();
-  spied.setList.resetHistory();
+  spied.setSafe.resetHistory();
+  spied.delSafe.resetHistory();
+  spied.setListSafe.resetHistory();
   spied.getList.resetHistory();
-  spied.delList.resetHistory();
+  spied.delListSafe.resetHistory();
   spied.delLists.resetHistory();
 };
 
@@ -101,12 +101,12 @@ describe('firestore integration tests', function () {
     const created = await ds.create(testInstance);
 
     expect(spied.get.callCount).to.eql(0);
-    expect(spied.set.callCount).to.eql(1);
-    expect(spied.del.callCount).to.eql(1);
-    expect(spied.setList.callCount).to.eql(0);
+    expect(spied.setSafe.callCount).to.eql(1);
+    expect(spied.delSafe.callCount).to.eql(0);
+    expect(spied.setListSafe.callCount).to.eql(0);
     expect(spied.getList.callCount).to.eql(0);
-    expect(spied.delList.callCount).to.eql(0);
-    expect(spied.delLists.callCount).to.eql(2);
+    expect(spied.delListSafe.callCount).to.eql(0);
+    expect(spied.delLists.callCount).to.eql(1);
 
     const found = await ds.getOrThrow(testInstance.id);
 
@@ -197,12 +197,12 @@ describe('firestore integration tests', function () {
     const updated = await ds.patch(created.id, { foo: 'new-foo', deep: { thing2: '9' } }, curDate);
 
     expect(spied.get.callCount).to.eql(0);
-    expect(spied.set.callCount).to.eql(1);
-    expect(spied.del.callCount).to.eql(1);
-    expect(spied.setList.callCount).to.eql(0);
+    expect(spied.setSafe.callCount).to.eql(1);
+    expect(spied.delSafe.callCount).to.eql(0);
+    expect(spied.setListSafe.callCount).to.eql(0);
     expect(spied.getList.callCount).to.eql(0);
-    expect(spied.delList.callCount).to.eql(0);
-    expect(spied.delLists.callCount).to.eql(2);
+    expect(spied.delListSafe.callCount).to.eql(0);
+    expect(spied.delLists.callCount).to.eql(1);
 
     expect(updated.foo).to.eql('new-foo');
     expect(updated.bar).to.eql('baz');
@@ -238,12 +238,12 @@ describe('firestore integration tests', function () {
     const updated = await ds.patch(created.id, { foo: 'new-foo', deep: { arrayThing: [{ foo: 'yo' }] } }, curDate);
 
     expect(spied.get.callCount).to.eql(0);
-    expect(spied.set.callCount).to.eql(1);
-    expect(spied.del.callCount).to.eql(1);
-    expect(spied.setList.callCount).to.eql(0);
+    expect(spied.setSafe.callCount).to.eql(1);
+    expect(spied.delSafe.callCount).to.eql(0);
+    expect(spied.setListSafe.callCount).to.eql(0);
     expect(spied.getList.callCount).to.eql(0);
-    expect(spied.delList.callCount).to.eql(0);
-    expect(spied.delLists.callCount).to.eql(2);
+    expect(spied.delListSafe.callCount).to.eql(0);
+    expect(spied.delLists.callCount).to.eql(1);
 
     const found = await ds.getOrThrow(testInstance.id);
 
@@ -281,12 +281,12 @@ describe('firestore integration tests', function () {
     const updated = await ds.patch(created.id, { foo: 'new-foo', deep: { arrayThing: [{ foo: 'yo' }], thing2: undefined } }, curDate);
 
     expect(spied.get.callCount).to.eql(0);
-    expect(spied.set.callCount).to.eql(1);
-    expect(spied.del.callCount).to.eql(1);
-    expect(spied.setList.callCount).to.eql(0);
+    expect(spied.setSafe.callCount).to.eql(1);
+    expect(spied.delSafe.callCount).to.eql(0);
+    expect(spied.setListSafe.callCount).to.eql(0);
     expect(spied.getList.callCount).to.eql(0);
-    expect(spied.delList.callCount).to.eql(0);
-    expect(spied.delLists.callCount).to.eql(2);
+    expect(spied.delListSafe.callCount).to.eql(0);
+    expect(spied.delLists.callCount).to.eql(1);
 
     expect(updated.foo).to.eql('new-foo');
     expect(updated.bar).to.eql('baz');
@@ -320,12 +320,12 @@ describe('firestore integration tests', function () {
     const updated = await ds.update(created.id, update, curDate);
 
     expect(spied.get.callCount).to.eql(1); // Get createdAt from previous
-    expect(spied.set.callCount).to.eql(2);
-    expect(spied.del.callCount).to.eql(2);
-    expect(spied.setList.callCount).to.eql(0);
+    expect(spied.setSafe.callCount).to.eql(2);
+    expect(spied.delSafe.callCount).to.eql(0);
+    expect(spied.setListSafe.callCount).to.eql(0);
     expect(spied.getList.callCount).to.eql(0);
-    expect(spied.delList.callCount).to.eql(0);
-    expect(spied.delLists.callCount).to.eql(2);
+    expect(spied.delListSafe.callCount).to.eql(0);
+    expect(spied.delLists.callCount).to.eql(1);
 
     const found = await ds.getOrThrow(testInstance.id);
 
@@ -356,11 +356,11 @@ describe('firestore integration tests', function () {
     await ds.remove(created.id);
 
     expect(spied.get.callCount).to.eql(0);
-    expect(spied.set.callCount).to.eql(0);
-    expect(spied.del.callCount).to.eql(1);
-    expect(spied.setList.callCount).to.eql(0);
+    expect(spied.setSafe.callCount).to.eql(0);
+    expect(spied.delSafe.callCount).to.eql(1);
+    expect(spied.setListSafe.callCount).to.eql(0);
     expect(spied.getList.callCount).to.eql(0);
-    expect(spied.delList.callCount).to.eql(0);
+    expect(spied.delListSafe.callCount).to.eql(0);
     expect(spied.delLists.callCount).to.eql(1);
 
     const found = await ds.get(created.id);
@@ -396,11 +396,11 @@ describe('firestore integration tests', function () {
     found.sort((a, b) => a.id.localeCompare(b.id));
 
     expect(spied.get.callCount).to.eql(0);
-    expect(spied.set.callCount).to.eql(0);
-    expect(spied.del.callCount).to.eql(0);
-    expect(spied.setList.callCount).to.eql(1);
+    expect(spied.setSafe.callCount).to.eql(0);
+    expect(spied.delSafe.callCount).to.eql(0);
+    expect(spied.setListSafe.callCount).to.eql(1);
     expect(spied.getList.callCount).to.eql(1);
-    expect(spied.delList.callCount).to.eql(0);
+    expect(spied.delListSafe.callCount).to.eql(0);
     expect(spied.delLists.callCount).to.eql(0);
 
     expect(found.length).to.eql(2);
@@ -432,11 +432,11 @@ describe('firestore integration tests', function () {
     found.sort((a, b) => a.id.localeCompare(b.id));
 
     expect(spied.get.callCount).to.eql(0);
-    expect(spied.set.callCount).to.eql(0);
-    expect(spied.del.callCount).to.eql(0);
-    expect(spied.setList.callCount).to.eql(1);
+    expect(spied.setSafe.callCount).to.eql(0);
+    expect(spied.delSafe.callCount).to.eql(0);
+    expect(spied.setListSafe.callCount).to.eql(1);
     expect(spied.getList.callCount).to.eql(1);
-    expect(spied.delList.callCount).to.eql(0);
+    expect(spied.delListSafe.callCount).to.eql(0);
     expect(spied.delLists.callCount).to.eql(0);
 
     expect(found.length).to.eql(1);
@@ -449,197 +449,5 @@ describe('firestore integration tests', function () {
 
     const thing = await ds.rawGet('missing');
     expect(thing).to.eql(null);
-  });
-});
-
-describe('pagination logic', function () {
-  this.timeout(5000);
-
-  let ds;
-  let curDate;
-
-  before(() => {
-    curDate = DateTime.fromISO('2019-01-01T00:00:00.000Z');
-    ds = new Firestore<TestClass>(defaultServices);
-    ds.configure(config);
-  });
-
-  beforeEach(async () => {
-    await deleteCollection('collection-foo');
-
-    const testInstance = new TestClass({
-      id: 'first',
-      foo: 'something',
-      bar: 'baz',
-      createdAt: curDate.toJSDate(),
-      updatedAt: curDate.toJSDate(),
-    });
-
-    await ds.create(testInstance);
-    await ds.create(new TestClass({ ...testInstance, id: 'second', createdAt: curDate.plus({ day: 2 }).toJSDate() }));
-    await ds.create(new TestClass({ ...testInstance, id: 'third', createdAt: curDate.plus({ day: 4 }).toJSDate() }));
-  });
-
-  afterEach(() => sinon.restore());
-
-  it('find one before second asc', async () => {
-    const found = await ds.query({
-      limit: 1,
-      before: curDate.plus({ day: 1 }).toJSDate(),
-      sort: { direction: SORT_DIRECTION.ASC, property: 'createdAt' },
-    });
-
-    expect(found.length).to.eql(1);
-    expect(found[0].id).to.eql('first');
-  });
-
-  it('find all before second asc', async () => {
-    const found = await ds.query({
-      before: curDate.plus({ day: 1 }).toJSDate(),
-      sort: { direction: SORT_DIRECTION.ASC, property: 'createdAt' },
-    });
-
-    expect(found.length).to.eql(1);
-    expect(found[0].id).to.eql('first');
-  });
-
-  it('find one after first asc', async () => {
-    const found = await ds.query({
-      limit: 1,
-      after: curDate.plus({ day: 1 }).toJSDate(),
-      sort: { direction: SORT_DIRECTION.ASC, property: 'createdAt' },
-    });
-
-    expect(found.length).to.eql(1);
-    expect(found[0].id).to.eql('second');
-  });
-
-  it('find all after first asc', async () => {
-    const found = await ds.query({
-      after: curDate.plus({ day: 1 }).toJSDate(),
-      sort: { direction: SORT_DIRECTION.ASC, property: 'createdAt' },
-    });
-
-    expect(found.length).to.eql(2);
-    expect(found[0].id).to.eql('second');
-    expect(found[1].id).to.eql('third');
-  });
-
-  it('find one before third asc', async () => {
-    const found = await ds.query({
-      limit: 1,
-      before: curDate.plus({ day: 3 }).toJSDate(),
-      sort: { direction: SORT_DIRECTION.ASC, property: 'createdAt' },
-    });
-
-    expect(found.length).to.eql(1);
-    expect(found[0].id).to.eql('second');
-  });
-
-  it('find all before third asc', async () => {
-    const found = await ds.query({
-      before: curDate.plus({ day: 3 }).toJSDate(),
-      sort: { direction: SORT_DIRECTION.ASC, property: 'createdAt' },
-    });
-
-    expect(found.length).to.eql(2);
-    expect(found[0].id).to.eql('first');
-    expect(found[1].id).to.eql('second');
-  });
-
-  it('find one after second asc', async () => {
-    const found = await ds.query({
-      limit: 1,
-      after: curDate.plus({ day: 3 }).toJSDate(),
-      sort: { direction: SORT_DIRECTION.ASC, property: 'createdAt' },
-    });
-
-    expect(found.length).to.eql(1);
-    expect(found[0].id).to.eql('third');
-  });
-
-  it('find all after second asc', async () => {
-    const found = await ds.query({
-      after: curDate.plus({ day: 3 }).toJSDate(),
-      sort: { direction: SORT_DIRECTION.ASC, property: 'createdAt' },
-    });
-
-    expect(found.length).to.eql(1);
-    expect(found[0].id).to.eql('third');
-  });
-
-  it('find one before second desc', async () => {
-    const found = await ds.query({
-      limit: 1,
-      before: curDate.plus({ day: 3 }).toJSDate(),
-      sort: { direction: SORT_DIRECTION.DESC, property: 'createdAt' },
-    });
-
-    expect(found.length).to.eql(1);
-    expect(found[0].id).to.eql('third');
-  });
-
-  it('find all before second desc', async () => {
-    const found = await ds.query({
-      before: curDate.plus({ day: 3 }).toJSDate(),
-      sort: { direction: SORT_DIRECTION.DESC, property: 'createdAt' },
-    });
-
-    expect(found.length).to.eql(1);
-    expect(found[0].id).to.eql('third');
-  });
-
-  it('find one after third desc', async () => {
-    const found = await ds.query({
-      limit: 1,
-      after: curDate.plus({ day: 3 }).toJSDate(),
-      sort: { direction: SORT_DIRECTION.DESC, property: 'createdAt' },
-    });
-
-    expect(found.length).to.eql(1);
-    expect(found[0].id).to.eql('second');
-  });
-
-  it('find all after third desc', async () => {
-    const found = await ds.query({
-      after: curDate.plus({ day: 3 }).toJSDate(),
-      sort: { direction: SORT_DIRECTION.DESC, property: 'createdAt' },
-    });
-
-    expect(found.length).to.eql(2);
-    expect(found[0].id).to.eql('second');
-    expect(found[1].id).to.eql('first');
-  });
-
-  it('find one before first desc', async () => {
-    const found = await ds.query({
-      limit: 1,
-      before: curDate.plus({ day: 1 }).toJSDate(),
-      sort: { direction: SORT_DIRECTION.DESC, property: 'createdAt' },
-    });
-
-    expect(found.length).to.eql(1);
-    expect(found[0].id).to.eql('second');
-  });
-
-  it('find one after second desc', async () => {
-    const found = await ds.query({
-      limit: 1,
-      after: curDate.plus({ day: 1 }).toJSDate(),
-      sort: { direction: SORT_DIRECTION.DESC, property: 'createdAt' },
-    });
-
-    expect(found.length).to.eql(1);
-    expect(found[0].id).to.eql('first');
-  });
-
-  it('find all after second desc', async () => {
-    const found = await ds.query({
-      after: curDate.plus({ day: 1 }).toJSDate(),
-      sort: { direction: SORT_DIRECTION.DESC, property: 'createdAt' },
-    });
-
-    expect(found.length).to.eql(1);
-    expect(found[0].id).to.eql('first');
   });
 });
