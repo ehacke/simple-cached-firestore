@@ -79,19 +79,32 @@ describe('firestore integration cache tests', function () {
 
     const specialConfig = {
       collection: 'collection-foo',
-      convertFromDb: async (params) => {
-        console.log(`foo ${params?.foo}`);
-        // This slows the first update until after the second update
-        if (params?.foo === 'first') {
-          await Bluebird.delay(500);
-        }
-
-        return new TestClass(params);
-      },
+      convertFromDb: async (params) => new TestClass(params),
       convertForDb: (params) => params,
     };
 
-    ds.configure(specialConfig);
+    ds.configure(specialConfig, {
+      cacheTtlSec: 5,
+      stringifyForCache: (instance: TestClass) => JSON.stringify(instance),
+      parseFromCache: (instance) => new TestClass(JSON.parse(instance)),
+    });
+
+    const originalSet = ds.cache.setSafe.bind(ds.cache);
+
+    let counter = 0;
+
+    sinon.stub(ds.cache, 'setSafe').callsFake(async (id, instance, timestamp) => {
+      if (instance?.foo === 'first') {
+        if (counter === 0) {
+          counter++;
+          await Bluebird.delay(500);
+        } else {
+          counter++;
+        }
+      }
+
+      await originalSet(id, instance, timestamp);
+    });
 
     const testInstance = new TestClass({
       id: 'foo-id',
@@ -111,10 +124,9 @@ describe('firestore integration cache tests', function () {
     await secondPromise;
 
     const found = await ds.getOrThrow(testInstance.id);
-    // const cacheVersion = await ds.cache.get(testInstance.id);
-    //
-    // expect(JSON.parse(cacheVersion as any).foo).to.eql('second');
+    const cacheVersion = await ds.cache.get(testInstance.id);
 
     expect(found.foo).to.eql('second');
+    expect(cacheVersion?.foo).to.eql('second');
   });
 });

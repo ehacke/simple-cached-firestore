@@ -12,13 +12,13 @@
     }
   },
   "dependencies": {
-    "@ehacke/redis": "^1.1.2",
+    "@ehacke/redis": "^1.1.4",
     "@types/bluebird": "^3.5.30",
     "@types/flat": "^5.0.0",
     "@types/ioredis": "^4.16.0",
     "@types/lodash": "^4.14.150",
     "@types/luxon": "^1.22.0",
-    "@types/node": "^13.13.4",
+    "@types/node": "^13.13.5",
     "@types/redlock": "^4.0.1",
     "@types/traverse": "^0.6.32",
     "bluebird": "^3.7.2",
