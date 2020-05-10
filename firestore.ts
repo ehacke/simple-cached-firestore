@@ -299,7 +299,7 @@ export class Firestore<T extends DalModel> extends Cached<T> {
    * @param {string} id
    * @returns {Promise<T | null>}
    */
-  private async internalGet(id: string): Promise<{ instance: T | null; timestamp: CacheTimestampInterface }> {
+  async internalGet(id: string): Promise<{ instance: T | null; timestamp: CacheTimestampInterface }> {
     if (!this.config) throw new Err(CONFIG_ERROR);
 
     const snapshot = await this.services.firestore.collection(this.config.collection).doc(id).get();
