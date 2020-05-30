@@ -70,8 +70,6 @@
     "prettier-eslint-cli": "^5.0.0",
     "sinon": "^9.0.2",
     "ts-node": "^8.10.1",
-    "typedoc": "^0.17.7",
-    "typedoc-plugin-markdown": "^2.2.17",
     "typescript": "^3.9.3"
   },
   "files": [
@@ -102,25 +100,6 @@
     ]
   },
   "main": "dist/src/index.js",
-  "nyc": {
-    "extends": "@istanbuljs/nyc-config-typescript",
-    "all": true,
-    "extension": [
-      ".ts"
-    ],
-    "include": [
-      "firestore.ts"
-    ],
-    "exclude": [
-      "src/scratch.*"
-    ],
-    "reporter": [
-      "html",
-      "text",
-      "text-summary",
-      "lcov"
-    ]
-  },
   "peerDependencies": {
     "firebase-admin": "^8.9.2"
   },
@@ -132,7 +111,6 @@
     "beta": "npm version prerelease && npm publish",
     "build": "rm -rf ./dist && tsc && sed -i 's/\"files\":/\"_files\":/' dist/package.json",
     "commit": "git-cz",
-    "docs": "typedoc --plugin typedoc-plugin-markdown --readme none --exclude \"tests/**/*.+(unit|it).+(ts|js)\"",
     "integration": "nyc mocha --recursive -r source-map-support/register -r ts-node/register -r tsconfig-paths/register --use_strict --exit \"tests/**/*.it.+(ts|js)\"",
     "lint": "fixpack && prettier-eslint --write && eslint --fix \"**/*.{js,ts}\"",
     "major": "npm version major && npm publish",
@@ -141,8 +119,8 @@
     "postpublish": "git push",
     "prepare": "fixpack",
     "prepublishOnly": "npm run build",
-    "test": "nyc mocha --recursive -r source-map-support/register -r ts-node/register -r tsconfig-paths/register --use_strict --exit \"tests/**/*.+(unit|it).+(ts|js)\"",
-    "unit": "nyc mocha --recursive -r source-map-support/register -r ts-node/register -r tsconfig-paths/register --use_strict --exit \"tests/**/*.unit.+(ts|js)\""
+    "test": "nyc mocha --recursive -r source-map-support/register -r ts-node/register --use_strict --exit \"tests/**/*.+(unit|it).+(ts|js)\"",
+    "unit": "nyc mocha --recursive -r source-map-support/register -r ts-node/register --use_strict --exit \"tests/**/*.unit.+(ts|js)\""
   },
   "types": "dist/src/index.d.ts"
 }
