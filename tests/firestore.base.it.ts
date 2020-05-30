@@ -2,8 +2,8 @@ import { expect } from 'chai';
 import { DateTime } from 'luxon';
 import sinon from 'sinon';
 
-import { FILTER_OPERATORS, Firestore } from '../firestore';
-import { toDate } from '../utils';
+import { FILTER_OPERATORS, Firestore } from '../src/firestore';
+import { toDate } from '../src/utils';
 import { db, deleteCollection } from './firestore';
 import redis from './mockRedis';
 
