@@ -39,7 +39,7 @@
     "@commitlint/cli": "^8.3.5",
     "@commitlint/config-conventional": "^8.3.4",
     "@ehacke/commitlint-config": "^1.0.3",
-    "@ehacke/eslint-config": "^1.0.4",
+    "@ehacke/eslint-config": "^1.1.0",
     "@ehacke/prettier-config": "^1.0.2",
     "@istanbuljs/nyc-config-typescript": "^1.0.1",
     "@types/chai-as-promised": "^7.1.2",
@@ -55,6 +55,7 @@
     "dotenv": "^8.2.0",
     "eslint": "^7.0.0",
     "eslint-import-resolver-typescript": "^2.0.0",
+    "eslint-plugin-json": "^2.1.1",
     "eslint-plugin-simple-import-sort": "^5.0.3",
     "firebase-admin": "^8.12.1",
     "fixpack": "^3.0.6",
@@ -128,7 +129,8 @@
     "url": "git+https://github.com/ehacke/simple-cached-firestore.git"
   },
   "scripts": {
-    "build": "rm -rf ./dist && tsc -p tsconfig.build.json && sed -i 's/\"files\":/\"_files\":/' dist/package.json",
+    "beta": "npm version prerelease && npm publish",
+    "build": "rm -rf ./dist && tsc && sed -i 's/\"files\":/\"_files\":/' dist/package.json",
     "commit": "git-cz",
     "docs": "typedoc --plugin typedoc-plugin-markdown --readme none --exclude \"tests/**/*.+(unit|it).+(ts|js)\"",
     "integration": "nyc mocha --recursive -r source-map-support/register -r ts-node/register -r tsconfig-paths/register --use_strict --exit \"tests/**/*.it.+(ts|js)\"",

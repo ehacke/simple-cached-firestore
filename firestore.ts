@@ -104,6 +104,7 @@ export class Firestore<T extends DalModel> extends Cached<T> {
 
   /**
    * Translate dates to timestamp
+   *
    * @param {any} obj
    * @returns {any}
    */
@@ -118,6 +119,7 @@ export class Firestore<T extends DalModel> extends Cached<T> {
 
   /**
    * Translate timestamps to dates
+   *
    * @param {any} obj
    * @returns {any}
    */
@@ -132,6 +134,7 @@ export class Firestore<T extends DalModel> extends Cached<T> {
 
   /**
    * Get cache timestamp from firestore timestamp, or fall back to redisTimestamp
+   *
    * @param {FirebaseFirestore.Timestamp} timestamp
    * @returns {CacheTimestampInterface}
    */
@@ -145,6 +148,7 @@ export class Firestore<T extends DalModel> extends Cached<T> {
 
   /**
    * Configure firestore
+   *
    * @param {FirestoreConfigInterface<T>} config
    * @param {FirestoreCacheConfigInterface<T>} cacheConfig
    * @returns {void}
@@ -166,6 +170,7 @@ export class Firestore<T extends DalModel> extends Cached<T> {
 
   /**
    * Clean model of common properties that shouldn't be written
+   *
    * @param {{}} model
    * @returns {{}}
    */
@@ -247,6 +252,7 @@ export class Firestore<T extends DalModel> extends Cached<T> {
 
   /**
    * Create instance of model in db
+   *
    * @param {T} instance
    * @returns {Promise<T>}
    */
@@ -277,6 +283,7 @@ export class Firestore<T extends DalModel> extends Cached<T> {
 
   /**
    * Get instance
+   *
    * @param {string} id
    * @returns {Promise<T | null>}
    */
@@ -296,6 +303,7 @@ export class Firestore<T extends DalModel> extends Cached<T> {
 
   /**
    * Get instance without touching cache
+   *
    * @param {string} id
    * @returns {Promise<T | null>}
    */
@@ -329,6 +337,7 @@ export class Firestore<T extends DalModel> extends Cached<T> {
 
   /**
    * Get value directly from the db, by-passing cache and convertFromDb
+   *
    * @param {string} id
    * @returns {Promise<any | null>}
    */
@@ -339,6 +348,7 @@ export class Firestore<T extends DalModel> extends Cached<T> {
 
   /**
    * Get value directly from the db, by-passing cache and convertFromDb
+   *
    * @param {string} id
    * @returns {Promise<{ instance: any, timestamp: CacheTimestampInterface }>}
    */
@@ -358,6 +368,7 @@ export class Firestore<T extends DalModel> extends Cached<T> {
 
   /**
    * Get instance or throw
+   *
    * @param {string} id
    * @param {boolean} throw404
    * @returns {Promise<T>}
@@ -373,6 +384,7 @@ export class Firestore<T extends DalModel> extends Cached<T> {
 
   /**
    * Internal get or throw without touching cache
+   *
    * @param {string} id
    * @param {boolean} throw404
    * @returns {Promise<T>}
@@ -385,6 +397,7 @@ export class Firestore<T extends DalModel> extends Cached<T> {
 
   /**
    * Update properties of model
+   *
    * @param {string} id
    * @param {{}} patchUpdate
    * @param {Date} [curDate]
@@ -410,6 +423,7 @@ export class Firestore<T extends DalModel> extends Cached<T> {
 
   /**
    * Model exists
+   *
    * @param {string} id
    * @returns {Promise<boolean>}
    */
@@ -419,6 +433,7 @@ export class Firestore<T extends DalModel> extends Cached<T> {
 
   /**
    * Remove model
+   *
    * @param {string} id
    * @returns {Promise<void>}
    */
@@ -430,6 +445,7 @@ export class Firestore<T extends DalModel> extends Cached<T> {
 
   /**
    * Remove model without touching cache
+   *
    * @param {string} id
    * @returns {Promise<void>}
    */
@@ -442,6 +458,7 @@ export class Firestore<T extends DalModel> extends Cached<T> {
 
   /**
    * Overwrite model
+   *
    * @param {string} id
    * @param {{}} instance
    * @param {Date} [curDate]
@@ -469,6 +486,7 @@ export class Firestore<T extends DalModel> extends Cached<T> {
 
   /**
    * List models satisfying query
+   *
    * @param {QueryInterface} query
    * @returns {Promise<T[]>}
    */
@@ -505,6 +523,7 @@ export class Firestore<T extends DalModel> extends Cached<T> {
 
   /**
    * Get value directly from the db, by-passing cache and convertFromDb
+   *
    * @param {QueryInterface} query
    * @returns {Promise<any[]>}
    */
@@ -530,6 +549,7 @@ export class Firestore<T extends DalModel> extends Cached<T> {
 
   /**
    * Remove by query
+   *
    * @param {QueryInterface} query
    * @returns {Promise<void>}
    */

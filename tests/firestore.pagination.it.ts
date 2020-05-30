@@ -2,8 +2,7 @@ import { expect } from 'chai';
 import { DateTime } from 'luxon';
 import sinon from 'sinon';
 
-import { Firestore, SORT_DIRECTION } from '@/firestore';
-
+import { Firestore, SORT_DIRECTION } from '../firestore';
 import { toDate } from '../utils';
 import { db, deleteCollection } from './firestore';
 import redis from './mockRedis';

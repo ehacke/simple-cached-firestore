@@ -5,8 +5,7 @@ import getenv from 'getenv';
 import { DateTime } from 'luxon';
 import sinon from 'sinon';
 
-import { Firestore } from '@/firestore';
-
+import { Firestore } from '../firestore';
 import { toDate } from '../utils';
 import { db, deleteCollection } from './firestore';
 

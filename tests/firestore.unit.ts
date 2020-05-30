@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import { isPlainObject } from 'lodash';
 import { DateTime } from 'luxon';
 
-import { Firestore } from '@/firestore';
+import { Firestore } from '../firestore';
 
 class DeepClass {
   foo: string;
