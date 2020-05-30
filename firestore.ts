@@ -201,8 +201,6 @@ export class Firestore<T extends DalModel> extends Cached<T> {
     let ref = this.services.firestore.collection(this.config.collection) as any;
 
     if (query.filters) {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-      // @ts-ignore // assuming the filter banning null is wrong
       ref = reduce(query.filters, (result, filter) => result.where(filter.property, filter.operator, filter.value), ref);
     }
 

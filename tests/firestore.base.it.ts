@@ -86,7 +86,6 @@ describe('firestore integration tests', function () {
     const ds = new Firestore<TestClass>(defaultServices);
     ds.configure(config);
 
-    // @ts-ignore
     const spied = sinon.spy<Cache>(ds.cache);
 
     const testInstance = new TestClass({
@@ -151,8 +150,7 @@ describe('firestore integration tests', function () {
       updatedAt: DateTime.fromISO('2019-01-01T00:00:00.000Z').toJSDate(),
     });
 
-    // @ts-ignore
-    testInstance.createdAt = '2019-01-01T00:00:00.000Z';
+    (testInstance.createdAt as any) = '2019-01-01T00:00:00.000Z';
 
     let result = await ds
       .create(testInstance)
@@ -161,8 +159,7 @@ describe('firestore integration tests', function () {
     expect(result && result.message).to.eql('createdAt must be a Date');
 
     testInstance.createdAt = DateTime.fromISO('2019-01-01T00:00:00.000Z').toJSDate();
-    // @ts-ignore
-    testInstance.updatedAt = '2019-01-01T00:00:00.000Z';
+    (testInstance.updatedAt as any) = '2019-01-01T00:00:00.000Z';
 
     result = await ds
       .create(testInstance)
@@ -174,7 +171,6 @@ describe('firestore integration tests', function () {
   it('patch deep model in db', async () => {
     const ds = new Firestore<TestClass>(defaultServices);
     ds.configure(config);
-    // @ts-ignore
     const spied = sinon.spy<Cache>(ds.cache);
 
     const curDate = DateTime.fromISO('2019-01-01T00:00:00.000Z').toJSDate();
@@ -215,7 +211,6 @@ describe('firestore integration tests', function () {
   it('patch deep model in db with arrays', async () => {
     const ds = new Firestore<TestClass>(defaultServices);
     ds.configure(config);
-    // @ts-ignore
     const spied = sinon.spy<Cache>(ds.cache);
 
     const curDate = DateTime.fromISO('2019-01-01T00:00:00.000Z').toJSDate();
@@ -259,7 +254,6 @@ describe('firestore integration tests', function () {
   it('patch deep model in db with undefined', async () => {
     const ds = new Firestore<TestClass>(defaultServices);
     ds.configure(config);
-    // @ts-ignore
     const spied = sinon.spy<Cache>(ds.cache);
 
     const curDate = DateTime.fromISO('2019-01-01T00:00:00.000Z').toJSDate();
@@ -299,7 +293,6 @@ describe('firestore integration tests', function () {
   it('update', async () => {
     const ds = new Firestore<TestClass>(defaultServices);
     ds.configure(config);
-    // @ts-ignore
     const spied = sinon.spy<Cache>(ds.cache);
 
     const curDate = DateTime.fromISO('2019-01-01T00:00:00.000Z').toJSDate();
@@ -337,7 +330,6 @@ describe('firestore integration tests', function () {
   it('remove', async () => {
     const ds = new Firestore<TestClass>(defaultServices);
     ds.configure(config);
-    // @ts-ignore
     const spied = sinon.spy<Cache>(ds.cache);
 
     const curDate = DateTime.fromISO('2019-01-01T00:00:00.000Z').toJSDate();
@@ -372,7 +364,6 @@ describe('firestore integration tests', function () {
   it('list', async () => {
     const ds = new Firestore<TestClass>(defaultServices);
     ds.configure(config);
-    // @ts-ignore
     const spied = sinon.spy<Cache>(ds.cache);
 
     const testInstance = new TestClass({
@@ -409,7 +400,6 @@ describe('firestore integration tests', function () {
   it('list with filters', async () => {
     const ds = new Firestore<TestClass>(defaultServices);
     ds.configure(config);
-    // @ts-ignore
     const spied = sinon.spy<Cache>(ds.cache);
 
     const testInstance = new TestClass({
