@@ -70,6 +70,8 @@
     "prettier-eslint-cli": "^5.0.0",
     "sinon": "^9.0.2",
     "ts-node": "^8.10.1",
+    "typedoc": "^0.17.7",
+    "typedoc-plugin-markdown": "^2.2.17",
     "typescript": "^3.9.3"
   },
   "files": [
@@ -109,8 +111,9 @@
   },
   "scripts": {
     "beta": "npm version prerelease && npm publish",
-    "build": "rm -rf ./dist && tsc && sed -i 's/\"files\":/\"_files\":/' dist/package.json",
+    "build": "rm -rf ./dist && tsc && sed -i 's/\"files\":/\"_files\":/' dist/package.json && npm run docs",
     "commit": "git-cz",
+    "docs": "rm -rf docs; typedoc --out docs --excludeExternals --exclude src/index.ts --exclude src/logger.ts --stripInternal src/",
     "integration": "nyc mocha --recursive -r source-map-support/register -r ts-node/register -r tsconfig-paths/register --use_strict --exit \"tests/**/*.it.+(ts|js)\"",
     "lint": "fixpack && prettier-eslint --write && eslint --fix \"**/*.{js,ts}\"",
     "major": "npm version major && npm publish",

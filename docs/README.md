@@ -1,3 +1,7 @@
+[simple-cached-firestore](README.md) › [Globals](globals.md)
+
+# simple-cached-firestore
+
 # simple-cached-firestore
 
 [![CircleCI](https://circleci.com/gh/ehacke/simple-cached-firestore.svg?style=svg)](https://circleci.com/gh/ehacke/simple-cached-firestore)
@@ -13,9 +17,6 @@ NodeJS Firestore wrapper with simplified API, model validation, and optional cac
 - simplified API to reduce boilerplate, but retain access to original API for special cases
 
 # API
-
-
-
 
 ## Changelog
 
