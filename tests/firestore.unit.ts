@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import { isPlainObject } from 'lodash';
 import { DateTime } from 'luxon';
 
-import { Firestore } from '@/firestore';
+import { Firestore } from '../src/firestore';
 
 class DeepClass {
   foo: string;
@@ -41,9 +41,8 @@ class TestClass {
 
   updatedAt: Date;
 
-  validate() {
-    return true;
-  }
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  validate() {}
 
   getDalSchema() {
     return {

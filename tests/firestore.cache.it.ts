@@ -5,9 +5,8 @@ import getenv from 'getenv';
 import { DateTime } from 'luxon';
 import sinon from 'sinon';
 
-import { Firestore } from '@/firestore';
-
-import { toDate } from '../utils';
+import { Firestore } from '../src/firestore';
+import { toDate } from '../src/utils';
 import { db, deleteCollection } from './firestore';
 
 class DeepClass {
@@ -46,15 +45,8 @@ class TestClass {
 
   updatedAt: Date;
 
-  validate() {
-    return true;
-  }
-
-  getDalSchema() {
-    return {
-      excludeFromIndexes: [],
-    };
-  }
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  validate() {}
 }
 
 const defaultServices = {

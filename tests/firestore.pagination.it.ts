@@ -2,9 +2,8 @@ import { expect } from 'chai';
 import { DateTime } from 'luxon';
 import sinon from 'sinon';
 
-import { Firestore, SORT_DIRECTION } from '@/firestore';
-
-import { toDate } from '../utils';
+import { Firestore, SORT_DIRECTION } from '../src/firestore';
+import { toDate } from '../src/utils';
 import { db, deleteCollection } from './firestore';
 import redis from './mockRedis';
 
@@ -44,15 +43,8 @@ class TestClass {
 
   updatedAt: Date;
 
-  validate() {
-    return true;
-  }
-
-  getDalSchema() {
-    return {
-      excludeFromIndexes: [],
-    };
-  }
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  validate() {}
 }
 
 const config = {

@@ -1,12 +1,13 @@
 {
-  "exclude": [
-    "node_modules",
-    "./coverage",
-    "./scratch.*"
-  ],
   "compilerOptions": {
+    "allowJs": false,
+    "alwaysStrict": true,
+    "baseUrl": "./",
+    "declaration": true,
+    "emitDecoratorMetadata": true,
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
     "incremental": true,
-    "target": "es2019",
     "lib": [
       "es5",
       "es6",
@@ -28,32 +29,27 @@
       "es2018"
     ],
     "module": "commonjs",
-    "allowJs": false,
-    "sourceMap": true,
-    "outDir": "./dist",
-    "strict": true,
-    "noImplicitAny": false,
-    "strictNullChecks": true,
-    "strictBindCallApply": true,
-    "noImplicitThis": false,
-    "alwaysStrict": true,
-    "noUnusedLocals": true,
-    "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true,
-    "resolveJsonModule": true,
     "moduleResolution": "node",
-    "baseUrl": "./",
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitAny": false,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "noUnusedLocals": true,
+    "outDir": "./dist",
+    "resolveJsonModule": true,
+    "sourceMap": true,
+    "strict": true,
+    "strictBindCallApply": true,
+    "strictNullChecks": true,
+    "target": "es2019",
     "typeRoots": [
       "./node_modules/@types",
       "./types"
-    ],
-    "esModuleInterop": true,
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
-    "declaration": true,
-    "paths": {
-      "@/firestore": ["firestore"],
-      "@/tests/*": ["tests/*"]
-    }
-  }
+    ]
+  },
+  "exclude": [
+    "node_modules",
+    "./coverage",
+    "./scratch.*"
+  ]
 }

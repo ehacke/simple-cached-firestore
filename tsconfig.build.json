@@ -1,4 +1,9 @@
 {
   "extends": "./tsconfig.base.json",
-  "files": ["./index.ts", "./firestore.ts", "./logger.ts", "./utils.ts"]
+  "exclude": [
+    "node_modules",
+    "./coverage",
+    "./scratch.*",
+    "tests/*"
+  ]
 }

@@ -1,7 +1,7 @@
 import bunyan from 'bunyan';
 import PrettyStream from 'bunyan-prettystream';
 
-import pjson from './package.json';
+import pjson from '../package.json';
 
 // eslint-disable-next-line no-process-env
 const logLevel = process.env.LOG_LEVEL || 'info';
