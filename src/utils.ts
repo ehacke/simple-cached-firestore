@@ -1,4 +1,4 @@
-import { isDate, isFunction, isNil, isString } from 'lodash';
+import { isDate, isFunction, isNil, isString, isNumber } from 'lodash';
 import { DateTime } from 'luxon';
 
 export const stringNotDate = (input: any | string): input is string => {
@@ -13,9 +13,13 @@ export const firestoreTimestamp = (input: any | FirestoreTimestamp): input is Fi
   return isFunction((input as FirestoreTimestamp).toDate);
 };
 
-export const toDate = (input: Date | string | FirestoreTimestamp): Date => {
+export const toDate = (input: Date | string | FirestoreTimestamp | DateTime | number): Date => {
+  // This nil case expects that the validation will throw elsewhere
   if (isNil(input)) return input;
-  if (isDate(input)) return input;
-  if (firestoreTimestamp(input)) return input.toDate();
+  if (isNumber(input)) return DateTime.fromMillis(input as number).toJSDate();
+  if (isDate(input)) return DateTime.fromJSDate(input).toUTC().toJSDate();
+  if (firestoreTimestamp(input)) return DateTime.fromJSDate(input.toDate()).toJSDate();
+  if (DateTime.isDateTime(input)) return input.toJSDate();
+
   return stringNotDate(input) ? DateTime.fromISO(input).toUTC().toJSDate() : input;
 };

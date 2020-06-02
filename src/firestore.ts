@@ -52,7 +52,7 @@ export interface QueryInterface {
 
 export interface DalModel {
   id: string;
-  validate(): any;
+  validate(): void | Promise<void>;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -69,9 +69,6 @@ export interface FirestoreConfigInterface<T extends DalModel> {
   convertFromDb(params: any): T | Promise<T>;
 }
 
-/**
- * @internal
- */
 interface InternalFirestoreConfigInterface<T extends DalModel> extends Omit<FirestoreConfigInterface<T>, 'readTimestampsToDates'> {
   readTimestampsToDates: boolean;
 }
@@ -82,9 +79,6 @@ export interface FirestoreCacheConfigInterface<T extends DalModel> {
   parseFromCache(instance: string): Promise<T> | T;
 }
 
-/**
- * @internal
- */
 const CLEAN_CONFIG = {
   emptyArrays: false,
   emptyObjects: false,
@@ -93,9 +87,6 @@ const CLEAN_CONFIG = {
   undefinedValues: true,
 };
 
-/**
- * @internal
- */
 const CONFIG_ERROR = 'firestore instance not configured';
 
 /**
@@ -180,7 +171,6 @@ export class Firestore<T extends DalModel> extends Cached<T> {
   /**
    * Clean model of common properties that shouldn't be written
    *
-   * @internal
    * @param {{}} model
    * @returns {{}}
    */
@@ -198,7 +188,6 @@ export class Firestore<T extends DalModel> extends Cached<T> {
    * Build firestore query from structured query
    * NOTE: Firestore doesn't work as expected when you combine endBefore and limit, and this corrects that
    *
-   * @internal
    * @param {QueryInterface} query
    * @returns {Query}
    */
@@ -313,7 +302,6 @@ export class Firestore<T extends DalModel> extends Cached<T> {
   /**
    * Get instance without touching cache
    *
-   * @internal
    * @param {string} id
    * @returns {Promise<T | null>}
    */
@@ -359,7 +347,6 @@ export class Firestore<T extends DalModel> extends Cached<T> {
   /**
    * Get value directly from the db, by-passing cache and convertFromDb
    *
-   * @internal
    * @param {string} id
    * @returns {Promise<{ instance: any, timestamp: CacheTimestampInterface }>}
    */
@@ -396,7 +383,6 @@ export class Firestore<T extends DalModel> extends Cached<T> {
   /**
    * Internal get or throw without touching cache
    *
-   * @internal
    * @param {string} id
    * @param {boolean} throw404
    * @returns {Promise<T>}
@@ -458,7 +444,6 @@ export class Firestore<T extends DalModel> extends Cached<T> {
   /**
    * Remove model without touching cache
    *
-   * @internal
    * @param {string} id
    * @returns {Promise<void>}
    */

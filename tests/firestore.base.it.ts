@@ -43,15 +43,8 @@ class TestClass {
 
   updatedAt: Date;
 
-  validate() {
-    return true;
-  }
-
-  getDalSchema() {
-    return {
-      excludeFromIndexes: [],
-    };
-  }
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  validate() {}
 }
 
 const config = {
