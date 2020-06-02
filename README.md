@@ -325,3 +325,12 @@ const results = await cachedFirestore.query(simpleMatchQuery);
 ```
 
 NOTE: queries are cached, but not very well. Any writes to this collection that occur after a cached query will invalidate the entire query cache.
+
+## Special Cases
+
+For situations where you need to access the underlying Firestore instance, you can do that.
+
+```
+cachedFirestore.services.firestore === admin.firestore.Firestore
+```
+
