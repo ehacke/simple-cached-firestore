@@ -8,6 +8,12 @@
 
 NodeJS Firestore wrapper with simplified API, model validation, and optional caching built in. 
 
+## Sponsor 
+
+![asserted.io](https://raw.githubusercontent.com/ehacke/simpled-cached-datastore/master/images/logo.png)
+
+[asserted.io - Test in Prod](https://asserted.io)
+
 ## Features
 
 - transparent, no-effort redis caching to improve speed and limit costs
@@ -132,7 +138,7 @@ cachedFirestore.configure(firebaseConfig, cacheConfig);
 
 ## CRUD API
 
-### create(instance: T): Promise<T>
+### create(instance: T): Promise\<T>
 
 Write a new model to the db. If an entry exists with the same ID, the write fails.
 
@@ -149,7 +155,7 @@ Read a model from the db by ID. Returns a constructed instance of the model, or 
 const validatedClass = await cachedFirestore.get('foo-id');
 ```
 
-### getOrThrow(id: string): Promise<T>
+### getOrThrow(id: string): Promise\<T>
 
 Read a model from the db by ID. Returns a constructed instance of the model, or throws an Error if not found.
 Useful for cases where you know the ID should exist, and dow't want to add null checks to make Typescript happy.
@@ -168,7 +174,7 @@ Pass in any subset of the properties of the model already in the db to update ju
 const validatedClass = await cachedFirestore.patch('foo-id', { something: 'patch-this' });
 ```
 
-### update(id: string, update: T): Promise<T>
+### update(id: string, update: T): Promise\<T>
 
 Overwrite entire instance of model with a new instance.
 
@@ -179,7 +185,7 @@ const updatedClass = new ValidatedClass({ id: 'foo-id', something: 'updated', cr
 const validatedClass = await cachedFirestore.update('foo-id', updatedClass);
 ```
 
-### exists(id: string): Promise<boolean>
+### exists(id: string): Promise\<boolean>
 
 Return true if ID exists in collection
 
@@ -187,7 +193,7 @@ Return true if ID exists in collection
 const exists = await cachedFirestore.exists('foo-id');
 ```
 
-### remove(id: string): Promise<void>
+### remove(id: string): Promise\<void>
 
 Remove model for this ID if it exists, silent return if it doesn't
 
@@ -197,3 +203,125 @@ await cachedFirestore.remove('foo-id');
 
 ## Query API
 
+To simplify the interface and to abstract it so that it can function for any db (not just Firestore), we created a simpler query language.
+
+```typescript
+interface QueryInterface {
+  filters?: ListFilterInterface[];
+  sort?: ListSortInterface;
+  offset?: number;
+  limit?: number;
+  before?: DalModelValue;
+  after?: DalModelValue;
+}
+
+type DalModelValue = string | Date | number | null | boolean;
+
+interface ListFilterInterface {
+  property: string;
+  operator: FILTER_OPERATORS;
+  value: DalModelValue;
+}
+
+enum FILTER_OPERATORS {
+  GT = '>',
+  GTE = '>=',
+  LT = '<',
+  LTE = '<=',
+  EQ = '==',
+  CONTAINS = 'array-contains',
+}
+
+interface ListSortInterface {
+  property: string;
+  direction: SORT_DIRECTION;
+}
+
+enum SORT_DIRECTION {
+  ASC = 'asc',
+  DESC = 'desc',
+}
+```
+
+In use, it looks like this:
+
+```typescript
+// Find all objects with property 'something' equal to 'some-value'
+const simpleMatchQuery = {
+  filters: [
+    {
+      property: 'something',
+      operator: FILTER_OPERATORS.EQ,
+      value: 'some-value',
+    } 
+  ],
+}
+
+// Can add multiple conditions
+const compoundMatchQuery = {
+  filters: [
+    {
+      property: 'something',
+      operator: FILTER_OPERATORS.EQ,
+      value: 'some-value',
+    },
+    {
+      property: 'another',
+      operator: FILTER_OPERATORS.EQ,
+      value: 'something-else',
+    } 
+  ],
+}
+
+// Use sorting, offset and limits
+const sortedQuery = {
+  filters: [
+    {
+      property: 'something',
+      operator: FILTER_OPERATORS.EQ,
+      value: 'some-value',
+    } 
+  ],
+  sort: {
+    property: 'createdAt',
+    direction: SORT_DIRECTION.DESC,
+  },
+  limit: 100, // Return 100 values max
+  offset: 20, // Start at the 20th value in descending order
+}
+
+// Use pagination
+const paginatedQuery = {
+  filters: [
+    {
+      property: 'something',
+      operator: FILTER_OPERATORS.EQ,
+      value: 'some-value',
+    } 
+  ],
+  sort: {
+    property: 'createdAt',
+    direction: SORT_DIRECTION.DESC,
+  },
+  limit: 100, // Return 100 values max
+  before: 'some-id', // Show page of up to 100, with entries that occur before the ID 'some-id'
+}
+```
+
+Then just pass the query to simple-cached-firestore
+
+```typescript
+const simpleMatchQuery = {
+  filters: [
+    {
+      property: 'something',
+      operator: FILTER_OPERATORS.EQ,
+      value: 'some-value',
+    } 
+  ],
+}
+
+const results = await cachedFirestore.query(simpleMatchQuery);
+```
+
+NOTE: queries are cached, but not very well. Any writes to this collection that occur after a cached query will invalidate the entire query cache.
