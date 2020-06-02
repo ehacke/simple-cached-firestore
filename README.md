@@ -27,9 +27,9 @@ Before instantiating the Firestore wrapper, we first need a model it'll use for 
 
 Here is a blog post on [validated models in Node](https://asserted.io/posts/type-safe-models-in-node), and why they are useful.
 
-### Create a Validated Class
+### Create a Model
 
-At minimum, the class has to fulfill the following interface: 
+At minimum, the model has to fulfill the following interface: 
 
 ```typescript
 interface DalModel {
@@ -90,6 +90,10 @@ class ValidatedClass extends ValidatedBase implements ValidatedClassInterface {
 
 ### Create simple-cached-firestore
 
+A single instance is responsible for reading and writing to a specific Firestore collection. 
+
+Reads are cached for the configured TTL, writes update the cache.
+
 ```typescript
 import admin from 'firebase-admin';
 import { Redis } from '@ehacke/redis';
@@ -126,6 +130,70 @@ cachedFirestore.configure(firebaseConfig, cacheConfig);
 // Firestore wrapper is ready to go.
 ```
 
-## API
+## CRUD API
 
+### create(instance: T): Promise<T>
+
+Write a new model to the db. If an entry exists with the same ID, the write fails.
+
+```typescript
+const validatedClass = new ValidatedClass({ id: 'foo-id', something: 'some-data', createdAt: new Date(), updatedAt: new Date() });
+await cachedFirestore.create(validatedClass);
+```
+
+### get(id: string): Promise<T | null>
+
+Read a model from the db by ID. Returns a constructed instance of the model, or null.
+
+```typescript
+const validatedClass = await cachedFirestore.get('foo-id');
+```
+
+### getOrThrow(id: string): Promise<T>
+
+Read a model from the db by ID. Returns a constructed instance of the model, or throws an Error if not found.
+Useful for cases where you know the ID should exist, and dow't want to add null checks to make Typescript happy.
+
+```typescript
+const validatedClass = await cachedFirestore.getOrThrow('foo-id');
+```
+
+### patch(id: string, patch: DeepPartial<T>): Promise<T>
+
+Pass in any subset of the properties of the model already in the db to update just those properties.
+
+`createdAt` and `updatedAt` are ignored, and `updatedAt` is set by the wrapper.
+
+```typescript
+const validatedClass = await cachedFirestore.patch('foo-id', { something: 'patch-this' });
+```
+
+### update(id: string, update: T): Promise<T>
+
+Overwrite entire instance of model with a new instance.
+
+`createdAt` and `updatedAt` are ignored, and `updatedAt` is set by the wrapper.
+
+```typescript
+const updatedClass = new ValidatedClass({ id: 'foo-id', something: 'updated', createdAt: new Date(), updatedAt: new Date() });
+const validatedClass = await cachedFirestore.update('foo-id', updatedClass);
+```
+
+### exists(id: string): Promise<boolean>
+
+Return true if ID exists in collection
+
+```typescript
+const exists = await cachedFirestore.exists('foo-id');
+```
+
+### remove(id: string): Promise<void>
+
+Remove model for this ID if it exists, silent return if it doesn't
+
+```typescript
+await cachedFirestore.remove('foo-id');
+```
+
+## Query API
 
