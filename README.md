@@ -10,7 +10,7 @@ NodeJS Firestore wrapper with simplified API, model validation, and optional cac
 
 ## Sponsor 
 
-![asserted.io](https://raw.githubusercontent.com/ehacke/simpled-cached-datastore/master/images/logo.png)
+![asserted.io](https://raw.githubusercontent.com/ehacke/simpled-cached-firestore/master/images/logo.png)
 
 [asserted.io - Test in Prod](https://asserted.io)
 
