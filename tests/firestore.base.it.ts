@@ -1,6 +1,7 @@
 import { expect } from 'chai';
 import { DateTime } from 'luxon';
 import sinon from 'sinon';
+import HTTP_STATUS from 'http-status';
 
 import { FILTER_OPERATORS, Firestore } from '../src/firestore';
 import { toDate } from '../src/utils';
@@ -103,6 +104,25 @@ describe('firestore integration tests', function () {
 
     expect(found).to.eql(created);
     expect(found).to.eql(testInstance);
+  });
+
+  it('create model in db - conflict', async () => {
+    const ds = new Firestore<TestClass>(defaultServices);
+    ds.configure(config);
+
+    const testInstance = new TestClass({
+      id: 'foo-id',
+      foo: 'something',
+      bar: 'baz',
+      createdAt: DateTime.fromISO('2019-01-01T00:00:00.000Z').toJSDate(),
+      updatedAt: DateTime.fromISO('2019-01-01T00:00:00.000Z').toJSDate(),
+    });
+
+    await ds.create(testInstance);
+    const result = await ds.create(testInstance).catch((error) => error);
+
+    expect(result.code).to.eql(HTTP_STATUS.CONFLICT);
+    expect(result.message).to.eql('Already exists');
   });
 
   it('create deep model in db with undefined', async () => {

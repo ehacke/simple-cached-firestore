@@ -1,7 +1,7 @@
 version: "3"
 
 services:
-  datastore:
+  firestore:
     image: ehacke/firestore-emulator:latest
     environment:
       - FIRESTORE_PROJECT_ID=project-test

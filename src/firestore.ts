@@ -270,13 +270,23 @@ export class Firestore<T extends DalModel> extends Cached<T> {
       throw new Err('updatedAt must be a Date');
     }
 
-    const cleanedData = cleanDeep(Firestore.translateDatesToTimestamps(data), CLEAN_CONFIG);
-    const { writeTime } = await this.services.firestore.collection(this.config.collection).doc(instance.id).create(cleanedData);
+    try {
+      const cleanedData = cleanDeep(Firestore.translateDatesToTimestamps(data), CLEAN_CONFIG);
+      const { writeTime } = await this.services.firestore.collection(this.config.collection).doc(instance.id).create(cleanedData);
 
-    await this.cache.delLists();
-    await this.cache.setSafe(instance.id, instance, Firestore.getCacheTimestamp(writeTime));
+      await this.cache.delLists();
+      await this.cache.setSafe(instance.id, instance, Firestore.getCacheTimestamp(writeTime));
 
-    return instance;
+      return instance;
+    } catch (error) {
+      // eslint-disable-next-line no-magic-numbers
+      if (error?.code === 6) {
+        throw new Err('Already exists', HTTP_STATUS.CONFLICT);
+      } else {
+        log.error(`Error during create: ${error.message}`);
+        throw new Err('Could not create');
+      }
+    }
   }
 
   /**
