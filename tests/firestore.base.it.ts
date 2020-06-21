@@ -476,7 +476,7 @@ describe('firestore integration tests', function () {
     const foundBeforeDelete = await ds.query();
     expect(foundBeforeDelete.length).to.eql(instances.length);
 
-    await ds.removeByQuery({}, 3);
+    await ds.removeByQuery({}, true, 3);
 
     const foundAfterDelete = await ds.query();
     expect(foundAfterDelete.length).to.eql(0);

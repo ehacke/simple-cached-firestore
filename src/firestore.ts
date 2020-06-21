@@ -560,19 +560,17 @@ export class Firestore<T extends DalModel> extends Cached<T> {
    * Remove by query
    *
    * @param {QueryInterface} query
+   * @param paginate
    * @param {PAGINATE_CONCURRENCY} pageSize
    * @returns {Promise<void>}
    */
-  async removeByQuery(query: QueryInterface, pageSize = PAGINATE_CONCURRENCY): Promise<string[]> {
+  async removeByQuery(query: QueryInterface, paginate = false, pageSize = PAGINATE_CONCURRENCY): Promise<string[]> {
     let ids = [] as string[];
 
     let isReverse = false;
 
-    const paginate = async (after?: DalModelValue) => {
-      const paginatedQuery: QueryInterface = after
-        ? { sort: { property: 'id', direction: SORT_DIRECTION.ASC }, ...query, limit: pageSize, after }
-        : { sort: { property: 'id', direction: SORT_DIRECTION.ASC }, ...query, limit: pageSize };
-      const { reverse, querySnapshot } = await this.getQuerySnapshot(paginatedQuery);
+    const internalRemoveByQuery = async (_query) => {
+      const { reverse, querySnapshot } = await this.getQuerySnapshot(_query);
 
       const pageIds = [] as string[];
       querySnapshot.forEach((snapshot) => {
@@ -587,13 +585,26 @@ export class Firestore<T extends DalModel> extends Cached<T> {
 
       ids = ids.concat(pageIds);
       isReverse = reverse;
-
-      if (pageIds.length >= pageSize) {
-        await paginate(last(pageIds));
-      }
+      return pageIds;
     };
 
-    await paginate();
+    if (paginate) {
+      const nextPage = async (after?: DalModelValue) => {
+        const paginatedQuery: QueryInterface = after
+          ? { sort: { property: 'id', direction: SORT_DIRECTION.ASC }, ...query, limit: pageSize, after }
+          : { sort: { property: 'id', direction: SORT_DIRECTION.ASC }, ...query, limit: pageSize };
+
+        const pageIds = await internalRemoveByQuery(paginatedQuery);
+
+        if (pageIds.length >= pageSize) {
+          await nextPage(last(pageIds));
+        }
+      };
+
+      await nextPage();
+    } else {
+      await internalRemoveByQuery(query);
+    }
 
     if (isReverse) {
       ids.reverse();
