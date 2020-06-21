@@ -304,7 +304,8 @@ const paginatedQuery = {
     direction: SORT_DIRECTION.DESC,
   },
   limit: 100, // Return 100 values max
-  before: 'some-id', // Show page of up to 100, with entries that occur before the ID 'some-id'
+  // Before or After should match sort property
+  after: 'created-at-1', // Show page of up to 100, with entries that occur after the createdAt 'created-at-1'
 }
 ```
 

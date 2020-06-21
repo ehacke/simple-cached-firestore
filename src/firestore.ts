@@ -7,7 +7,7 @@ import stringify from 'fast-json-stable-stringify';
 import admin from 'firebase-admin';
 import flatten from 'flat';
 import HTTP_STATUS from 'http-status';
-import { isDate, isNil, reduce, round } from 'lodash';
+import { isDate, isNil, reduce, round, last } from 'lodash';
 import { DateTime } from 'luxon';
 import traverse, { TraverseContext } from 'traverse';
 import { DeepPartial } from 'ts-essentials';
@@ -88,6 +88,7 @@ const CLEAN_CONFIG = {
 };
 
 const CONFIG_ERROR = 'firestore instance not configured';
+const PAGINATE_CONCURRENCY = 25;
 
 /**
  * @class
@@ -498,7 +499,7 @@ export class Firestore<T extends DalModel> extends Cached<T> {
    * @param {QueryInterface} query
    * @returns {Promise<T[]>}
    */
-  async query(query: QueryInterface): Promise<T[]> {
+  async query(query: QueryInterface = {}): Promise<T[]> {
     const cacheKey = stringify(query);
     const cacheResults = await this.cache.getList(cacheKey);
     if (cacheResults) return cacheResults;
@@ -559,29 +560,44 @@ export class Firestore<T extends DalModel> extends Cached<T> {
    * Remove by query
    *
    * @param {QueryInterface} query
+   * @param {PAGINATE_CONCURRENCY} pageSize
    * @returns {Promise<void>}
    */
-  async removeByQuery(query: QueryInterface): Promise<string[]> {
-    const { reverse, querySnapshot } = await this.getQuerySnapshot(query);
+  async removeByQuery(query: QueryInterface, pageSize = PAGINATE_CONCURRENCY): Promise<string[]> {
+    let ids = [] as string[];
 
-    const ids = [] as string[];
+    let isReverse = false;
 
-    querySnapshot.forEach((snapshot) => {
-      if (!snapshot.exists) return;
-      ids.push(snapshot.id);
-    });
+    const paginate = async (after?: DalModelValue) => {
+      const paginatedQuery: QueryInterface = after
+        ? { sort: { property: 'id', direction: SORT_DIRECTION.ASC }, ...query, limit: pageSize, after }
+        : { sort: { property: 'id', direction: SORT_DIRECTION.ASC }, ...query, limit: pageSize };
+      const { reverse, querySnapshot } = await this.getQuerySnapshot(paginatedQuery);
 
-    await this.cache.delLists();
+      const pageIds = [] as string[];
+      querySnapshot.forEach((snapshot) => {
+        if (!snapshot.exists) return;
+        pageIds.push(snapshot.id);
+      });
 
-    if (reverse) {
+      await Bluebird.map(pageIds, async (id) => {
+        const timestamp = await this.internalRemove(id);
+        await this.cache.delSafe(id, timestamp);
+      });
+
+      ids = ids.concat(pageIds);
+      isReverse = reverse;
+
+      if (pageIds.length >= pageSize) {
+        await paginate(last(pageIds));
+      }
+    };
+
+    await paginate();
+
+    if (isReverse) {
       ids.reverse();
     }
-
-    await Bluebird.map(ids, async (id) => {
-      const timestamp = await this.internalRemove(id);
-      await this.cache.delSafe(id, timestamp);
-      return id;
-    });
 
     await this.cache.delLists();
 

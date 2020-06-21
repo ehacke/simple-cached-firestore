@@ -15,7 +15,7 @@
     "@ehacke/redis": "^1.1.5",
     "@types/bluebird": "^3.5.32",
     "@types/flat": "^5.0.1",
-    "@types/ioredis": "^4.16.5",
+    "@types/ioredis": "^4.16.6",
     "@types/lodash": "^4.14.155",
     "@types/luxon": "^1.24.0",
     "@types/node": "^14.0.13",
@@ -32,12 +32,11 @@
     "http-status": "^1.4.2",
     "lodash": "^4.17.15",
     "luxon": "^1.24.1",
-    "traverse": "^0.6.6",
-    "ts-essentials": "^6.0.7"
+    "traverse": "^0.6.6"
   },
   "devDependencies": {
-    "@commitlint/cli": "^8.3.5",
-    "@commitlint/config-conventional": "^8.3.4",
+    "@commitlint/cli": "^9.0.1",
+    "@commitlint/config-conventional": "^9.0.1",
     "@ehacke/commitlint-config": "^1.0.3",
     "@ehacke/eslint-config": "^1.1.6",
     "@ehacke/prettier-config": "^1.0.2",
@@ -49,10 +48,10 @@
     "chai": "^4.2.0",
     "class-validator": "^0.12.2",
     "commitizen": "^4.1.2",
-    "commitlint": "^8.3.5",
+    "commitlint": "^9.0.1",
     "cz-conventional-changelog": "^3.2.0",
     "dotenv": "^8.2.0",
-    "eslint": "^7.2.0",
+    "eslint": "7.2.0",
     "eslint-import-resolver-typescript": "^2.0.0",
     "eslint-plugin-json": "^2.1.1",
     "eslint-plugin-simple-import-sort": "^5.0.3",
@@ -61,12 +60,13 @@
     "getenv": "^1.0.0",
     "husky": "^4.2.5",
     "ioredis": "^4.17.1",
-    "lint-staged": "^10.2.10",
+    "lint-staged": "^10.2.11",
     "mocha": "^8.0.1",
     "nyc": "^15.1.0",
     "prettier": "^2.0.5",
     "prettier-eslint-cli": "^5.0.0",
     "sinon": "^9.0.2",
+    "ts-essentials": "^7.0.0",
     "ts-node": "^8.10.1",
     "typescript": "^3.9.5",
     "validated-base": "^1.0.1"
@@ -99,6 +99,9 @@
     ]
   },
   "main": "dist/src/index.js",
+  "optionalDependencies": {
+    "ts-essentials": "^7.0.0"
+  },
   "peerDependencies": {
     "firebase-admin": "^8.9.2"
   },
