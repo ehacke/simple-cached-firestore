@@ -99,11 +99,9 @@
     ]
   },
   "main": "dist/src/index.js",
-  "optionalDependencies": {
-    "ts-essentials": "^7.0.0"
-  },
   "peerDependencies": {
-    "firebase-admin": "^8.9.2"
+    "firebase-admin": "^8.9.2",
+    "ts-essentials": "^7.0.0"
   },
   "repository": {
     "type": "git",
