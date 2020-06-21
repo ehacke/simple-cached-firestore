@@ -481,4 +481,31 @@ describe('firestore integration tests', function () {
     const foundAfterDelete = await ds.query();
     expect(foundAfterDelete.length).to.eql(0);
   });
+
+  it('non-paginated delete', async () => {
+    const ds = new Firestore<TestClass>(defaultServices);
+    ds.configure(config);
+
+    const instances = times(
+      30,
+      (i) =>
+        new TestClass({
+          id: `foo-id-${i}`,
+          foo: 'something',
+          bar: 'baz',
+          createdAt: DateTime.fromISO('2019-01-01T00:00:00.000Z').plus({ hour: i }).toJSDate(),
+          updatedAt: DateTime.fromISO('2019-01-01T00:00:00.000Z').plus({ hour: i }).toJSDate(),
+        })
+    );
+
+    await Bluebird.each(instances, (instance) => ds.create(instance));
+
+    const foundBeforeDelete = await ds.query();
+    expect(foundBeforeDelete.length).to.eql(instances.length);
+
+    await ds.removeByQuery({});
+
+    const foundAfterDelete = await ds.query();
+    expect(foundAfterDelete.length).to.eql(0);
+  });
 });
