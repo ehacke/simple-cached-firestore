@@ -14,6 +14,8 @@ NodeJS Firestore wrapper with simplified API, model validation, and optional cac
 
 [asserted.io - Test in Prod](https://asserted.io)
 
+Blog post on [why I built this and how to use it](https://asserted.io/posts/simplified-firestore-with-redis)
+
 ## Features
 
 - transparent, no-effort redis caching to improve speed and limit costs
