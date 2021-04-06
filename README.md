@@ -6,15 +6,7 @@
 ![CircleCI](https://img.shields.io/circleci/build/github/ehacke/simple-cached-firestore)
 ![GitHub](https://img.shields.io/github/license/ehacke/simple-cached-firestore)
 
-NodeJS Firestore wrapper with simplified API, model validation, and optional caching built in. 
-
-## Sponsor 
-
-![asserted.io](https://raw.githubusercontent.com/ehacke/simple-cached-firestore/master/images/logo.png)
-
-[asserted.io - Test in Prod](https://asserted.io)
-
-Here's a blog post on [why I built this and how to use it](https://asserted.io/posts/simplified-firestore-with-redis)
+NodeJS Firestore wrapper with simplified API, model validation, and optional caching built in.
 
 ## Features
 
