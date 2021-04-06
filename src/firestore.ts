@@ -1,4 +1,4 @@
-import { Cached, CacheTimestampInterface, Redis } from '@ehacke/redis';
+import { Cached, CacheTimestampInterface, Redis } from '@gapizza/redis';
 import Bluebird from 'bluebird';
 import { classToPlain } from 'class-transformer';
 import cleanDeep from 'clean-deep';
@@ -12,7 +12,10 @@ import { DateTime } from 'luxon';
 import traverse, { TraverseContext } from 'traverse';
 import { DeepPartial } from 'ts-essentials';
 
+import { firestore } from 'firebase-admin/lib/firestore';
+import { DocumentData } from '@google-cloud/firestore';
 import log from './logger';
+import Timestamp = firestore.Timestamp;
 
 export enum FILTER_OPERATORS {
   GT = '>',
@@ -128,7 +131,7 @@ export class Firestore<T extends DalModel> extends Cached<T> {
     // eslint-disable-next-line array-callback-return,func-names
     return traverse(obj).map(function (this: TraverseContext, property): void {
       if (property instanceof admin.firestore.Timestamp) {
-        this.update((property as admin.firestore.Timestamp).toDate());
+        this.update(property.toDate());
       }
     });
   }
@@ -139,7 +142,7 @@ export class Firestore<T extends DalModel> extends Cached<T> {
    * @param {FirebaseFirestore.Timestamp} timestamp
    * @returns {CacheTimestampInterface}
    */
-  static getCacheTimestamp(timestamp: FirebaseFirestore.Timestamp): CacheTimestampInterface {
+  static getCacheTimestamp(timestamp: Timestamp): CacheTimestampInterface {
     return {
       seconds: timestamp.seconds,
       // eslint-disable-next-line no-magic-numbers
@@ -199,7 +202,7 @@ export class Firestore<T extends DalModel> extends Cached<T> {
 
     query = Firestore.translateDatesToTimestamps(query);
 
-    let ref = this.services.firestore.collection(this.config.collection) as any;
+    let ref: firestore.Query<DocumentData> = this.services.firestore.collection(this.config.collection);
 
     if (query.filters) {
       ref = reduce(query.filters, (result, filter) => result.where(filter.property, filter.operator, filter.value), ref);
@@ -516,10 +519,10 @@ export class Firestore<T extends DalModel> extends Cached<T> {
       snapshots.push({ id: snapshot.id, ...data });
     });
 
-    const results = (await Bluebird.map(snapshots, (snapshot) => {
+    const results = await Bluebird.map(snapshots, (snapshot) => {
       if (!this.config) throw new Err(CONFIG_ERROR);
       return this.config.convertFromDb(snapshot);
-    })) as T[];
+    });
 
     if (reverse) {
       results.reverse();
@@ -573,6 +576,7 @@ export class Firestore<T extends DalModel> extends Cached<T> {
       const { reverse, querySnapshot } = await this.getQuerySnapshot(_query);
 
       const pageIds = [] as string[];
+
       querySnapshot.forEach((snapshot) => {
         if (!snapshot.exists) return;
         pageIds.push(snapshot.id);
@@ -583,7 +587,7 @@ export class Firestore<T extends DalModel> extends Cached<T> {
         await this.cache.delSafe(id, timestamp);
       });
 
-      ids = ids.concat(pageIds);
+      ids = [...ids, ...pageIds];
       isReverse = reverse;
       return pageIds;
     };
