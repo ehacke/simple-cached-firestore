@@ -1,1 +1,1 @@
-module.exports = { extends: ['@ehacke/commitlint-config'] };
+module.exports = { extends: ['@gapizza/commitlint-config'] };

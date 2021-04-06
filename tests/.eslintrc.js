@@ -13,6 +13,7 @@ module.exports = {
     'require-jsdoc': 'off',
     'sonarjs/no-identical-functions': 'off',
     'unicorn/filename-case': 'off',
+    'unicorn/no-array-push-push': 'off',
     'valid-jsdoc': 'off',
   },
 };

@@ -1,4 +1,4 @@
-import { Cached, CacheTimestampInterface, Redis } from '@ehacke/redis';
+import { Cached, CacheTimestampInterface, Redis } from '@gapizza/redis';
 import Bluebird from 'bluebird';
 import { classToPlain } from 'class-transformer';
 import cleanDeep from 'clean-deep';
@@ -12,7 +12,9 @@ import { DateTime } from 'luxon';
 import traverse, { TraverseContext } from 'traverse';
 import { DeepPartial } from 'ts-essentials';
 
+import { firestore } from 'firebase-admin/lib/firestore';
 import log from './logger';
+import Timestamp = firestore.Timestamp;
 
 export enum FILTER_OPERATORS {
   GT = '>',
@@ -139,7 +141,7 @@ export class Firestore<T extends DalModel> extends Cached<T> {
    * @param {FirebaseFirestore.Timestamp} timestamp
    * @returns {CacheTimestampInterface}
    */
-  static getCacheTimestamp(timestamp: FirebaseFirestore.Timestamp): CacheTimestampInterface {
+  static getCacheTimestamp(timestamp: Timestamp): CacheTimestampInterface {
     return {
       seconds: timestamp.seconds,
       // eslint-disable-next-line no-magic-numbers
@@ -508,13 +510,14 @@ export class Firestore<T extends DalModel> extends Cached<T> {
 
     const snapshots = [] as any[];
 
-    querySnapshot.forEach((snapshot) => {
-      if (!snapshot.exists) return;
+    // @ts-expect-error this works even thpough there is an error
+    for (const snapshot of querySnapshot) {
+      if (!snapshot.exists) continue;
       if (!this.config) throw new Err(CONFIG_ERROR);
 
       const data = this.config.readTimestampsToDates ? Firestore.translateTimestampsToDates(snapshot.data()) : snapshot.data();
       snapshots.push({ id: snapshot.id, ...data });
-    });
+    }
 
     const results = (await Bluebird.map(snapshots, (snapshot) => {
       if (!this.config) throw new Err(CONFIG_ERROR);
@@ -541,13 +544,14 @@ export class Firestore<T extends DalModel> extends Cached<T> {
 
     const results = [] as any[];
 
-    querySnapshot.forEach((snapshot) => {
-      if (!snapshot.exists) return;
+    // @ts-expect-error this works even thpough there is an error
+    for (const snapshot of querySnapshot) {
+      if (!snapshot.exists) continue;
       if (!this.config) throw new Err(CONFIG_ERROR);
 
       const data = this.config.readTimestampsToDates ? Firestore.translateTimestampsToDates(snapshot.data()) : snapshot.data();
       results.push({ id: snapshot.id, ...data });
-    });
+    }
 
     if (reverse) {
       results.reverse();
@@ -573,17 +577,18 @@ export class Firestore<T extends DalModel> extends Cached<T> {
       const { reverse, querySnapshot } = await this.getQuerySnapshot(_query);
 
       const pageIds = [] as string[];
-      querySnapshot.forEach((snapshot) => {
-        if (!snapshot.exists) return;
+      // @ts-expect-error this works even thpough there is an error
+      for (const snapshot of querySnapshot) {
+        if (!snapshot.exists) continue;
         pageIds.push(snapshot.id);
-      });
+      }
 
       await Bluebird.map(pageIds, async (id) => {
         const timestamp = await this.internalRemove(id);
         await this.cache.delSafe(id, timestamp);
       });
 
-      ids = ids.concat(pageIds);
+      ids = [...ids, ...pageIds];
       isReverse = reverse;
       return pageIds;
     };

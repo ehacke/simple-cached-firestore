@@ -1,4 +1,4 @@
-import { Redis } from '@ehacke/redis';
+import { Redis } from '@gapizza/redis';
 import Bluebird from 'bluebird';
 import { expect } from 'chai';
 import getenv from 'getenv';

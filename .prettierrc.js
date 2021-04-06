@@ -1,3 +1,3 @@
 module.exports = {
-  ...require("@ehacke/prettier-config"),
+  ...require('@gapizza/prettier-config'),
 };

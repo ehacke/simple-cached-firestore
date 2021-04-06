@@ -22,9 +22,9 @@ const deleteQueryBatch = async (query, batchSize) => {
 
   // Delete documents in a batch
   const batch = db.batch();
-  snapshot.docs.forEach((doc) => {
+  for (const doc of snapshot.docs) {
     batch.delete(doc.ref);
-  });
+  }
 
   await batch.commit();
 
