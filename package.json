@@ -90,7 +90,7 @@
     "validated-base": "^1.1.0"
   },
   "files": [
-    "dist/**/*.{js,ts,tsbuildinfo}",
+    "dist/**/*.{js,ts,tsbuildinfo,json}",
     "docs/**/*.*"
   ],
   "homepage": "https://github.com/ehacke/simple-cached-firestore#readme",
