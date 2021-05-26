@@ -23,6 +23,9 @@ export enum FILTER_OPERATORS {
   LT = '<',
   LTE = '<=',
   EQ = '==',
+  NOT_EQ = '!=',
+  IN = 'in',
+  NOT_IN = 'not-in',
   CONTAINS = 'array-contains',
   CONTAINS_ANY = 'array-contains-any',
 }
