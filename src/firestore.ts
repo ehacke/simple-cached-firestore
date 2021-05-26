@@ -24,9 +24,10 @@ export enum FILTER_OPERATORS {
   LTE = '<=',
   EQ = '==',
   CONTAINS = 'array-contains',
+  CONTAINS_ANY = 'array-contains-any',
 }
 
-export type DalModelValue = string | Date | number | null | boolean;
+export type DalModelValue = string | Array<string> | Date | number | null | boolean;
 
 export interface ListFilterInterface {
   property: string;
