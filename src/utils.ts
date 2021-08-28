@@ -16,10 +16,10 @@ export const firestoreTimestamp = (input: any | FirestoreTimestamp): input is Fi
 export const toDate = (input: Date | string | FirestoreTimestamp | DateTime | number): Date => {
   // This nil case expects that the validation will throw elsewhere
   if (isNil(input)) return input;
-  if (isNumber(input)) return DateTime.fromMillis(input as number).toJSDate();
+  if (isNumber(input)) return DateTime.fromMillis(input).toJSDate();
   if (isDate(input)) return DateTime.fromJSDate(input).toUTC().toJSDate();
   if (firestoreTimestamp(input)) return DateTime.fromJSDate(input.toDate()).toJSDate();
-  if (DateTime.isDateTime(input)) return input.toJSDate();
+  if (!isString(input) && DateTime.isDateTime(input)) return input.toJSDate();
 
   return stringNotDate(input) ? DateTime.fromISO(input).toUTC().toJSDate() : input;
 };
