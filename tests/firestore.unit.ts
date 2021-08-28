@@ -72,8 +72,8 @@ describe('firestore unit tests', () => {
       foo: 'something',
       bar: 'baz',
       classy: [{ foo: 'something' }, { foo: 'something-2' }],
-      createdAt: { _seconds: 1546300800, _nanoseconds: 0 },
-      updatedAt: { _seconds: 1546300800, _nanoseconds: 0 },
+      createdAt: { _seconds: 1_546_300_800, _nanoseconds: 0 },
+      updatedAt: { _seconds: 1_546_300_800, _nanoseconds: 0 },
     });
   });
 });

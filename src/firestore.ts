@@ -110,13 +110,15 @@ export class Firestore<T extends DalModel> extends Cached<T> {
     this.services = services;
   }
 
+  /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
   /**
    * Translate dates to timestamp
    *
    * @param {any} obj
    * @returns {any}
    */
-  static translateDatesToTimestamps(obj): any {
+  static translateDatesToTimestamps(obj: any): any {
     // eslint-disable-next-line array-callback-return,func-names
     return traverse(classToPlain(obj)).map(function (this: TraverseContext, property): void {
       if (isDate(property)) {
@@ -131,7 +133,7 @@ export class Firestore<T extends DalModel> extends Cached<T> {
    * @param {any} obj
    * @returns {any}
    */
-  static translateTimestampsToDates(obj): any {
+  static translateTimestampsToDates(obj: any): any {
     // eslint-disable-next-line array-callback-return,func-names
     return traverse(obj).map(function (this: TraverseContext, property): void {
       if (property instanceof admin.firestore.Timestamp) {
@@ -139,6 +141,8 @@ export class Firestore<T extends DalModel> extends Cached<T> {
       }
     });
   }
+
+  /* eslint-enable @typescript-eslint/explicit-module-boundary-types */
 
   /**
    * Get cache timestamp from firestore timestamp, or fall back to redisTimestamp
@@ -234,11 +238,7 @@ export class Firestore<T extends DalModel> extends Cached<T> {
     }
 
     if (query.before) {
-      if (reverse) {
-        ref = ref.startAfter(query.before);
-      } else {
-        ref = ref.endBefore(query.before);
-      }
+      ref = reverse ? ref.startAfter(query.before) : ref.endBefore(query.before);
     }
 
     if (query.after) {
@@ -286,12 +286,12 @@ export class Firestore<T extends DalModel> extends Cached<T> {
       await this.cache.setSafe(instance.id, instance, Firestore.getCacheTimestamp(writeTime));
 
       return instance;
-    } catch (error) {
+    } catch (error: any) {
       // eslint-disable-next-line no-magic-numbers
       if (error?.code === 6) {
         throw new Err('Already exists', HTTP_STATUS.CONFLICT);
       } else {
-        log.error(`Error during create: ${error.message}`);
+        log.error(`Error during create: ${error?.message}`);
         throw new Err('Could not create');
       }
     }
@@ -308,11 +308,7 @@ export class Firestore<T extends DalModel> extends Cached<T> {
     if (cached) return cached;
     const { instance, timestamp } = await this.internalGet(id);
 
-    if (instance) {
-      await this.cache.setSafe(id, instance, timestamp);
-    } else {
-      await this.cache.delSafe(id, timestamp);
-    }
+    await (instance ? this.cache.setSafe(id, instance, timestamp) : this.cache.delSafe(id, timestamp));
 
     return instance;
   }
@@ -344,8 +340,8 @@ export class Firestore<T extends DalModel> extends Cached<T> {
         instance: result,
         timestamp,
       };
-    } catch (error) {
-      log.error(`Error while reading from db: ${error.message}`);
+    } catch (error: any) {
+      log.error(`Error while reading from db: ${error?.message}`);
       log.error('Data: ', data);
       throw error;
     }
@@ -523,6 +519,7 @@ export class Firestore<T extends DalModel> extends Cached<T> {
       snapshots.push({ id: snapshot.id, ...data });
     });
 
+    // eslint-disable-next-line unicorn/no-array-method-this-argument
     const results = await Bluebird.map(snapshots, (snapshot) => {
       if (!this.config) throw new Err(CONFIG_ERROR);
       return this.config.convertFromDb(snapshot);
@@ -576,7 +573,7 @@ export class Firestore<T extends DalModel> extends Cached<T> {
 
     let isReverse = false;
 
-    const internalRemoveByQuery = async (_query) => {
+    const internalRemoveByQuery = async (_query): Promise<string[]> => {
       const { reverse, querySnapshot } = await this.getQuerySnapshot(_query);
 
       const pageIds = [] as string[];
@@ -586,7 +583,7 @@ export class Firestore<T extends DalModel> extends Cached<T> {
         pageIds.push(snapshot.id);
       });
 
-      await Bluebird.map(pageIds, async (id) => {
+      await Bluebird.each(pageIds, async (id) => {
         const timestamp = await this.internalRemove(id);
         await this.cache.delSafe(id, timestamp);
       });
@@ -597,7 +594,7 @@ export class Firestore<T extends DalModel> extends Cached<T> {
     };
 
     if (paginate) {
-      const nextPage = async (after?: DalModelValue) => {
+      const nextPage = async (after?: DalModelValue): Promise<void> => {
         const paginatedQuery: QueryInterface = after
           ? { sort: { property: 'id', direction: SORT_DIRECTION.ASC }, ...query, limit: pageSize, after }
           : { sort: { property: 'id', direction: SORT_DIRECTION.ASC }, ...query, limit: pageSize };

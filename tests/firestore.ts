@@ -28,10 +28,10 @@ const deleteQueryBatch = async (query, batchSize) => {
 
   await batch.commit();
 
-  return snapshot.size !== 0 ? deleteQueryBatch(query, batchSize) : null;
+  return snapshot.size > 0 ? deleteQueryBatch(query, batchSize) : null;
 };
 
-export const deleteCollection = (collectionPath, batchSize = 100) => {
+export const deleteCollection = (collectionPath: string, batchSize = 100): Promise<null> => {
   const collectionRef = db.collection(collectionPath);
   const query = collectionRef.orderBy('__name__').limit(batchSize);
 

@@ -4,3 +4,4 @@ images/**
 coverage/**
 scratch.*
 dist/
+.eslintrc.js
