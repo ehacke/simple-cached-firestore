@@ -466,8 +466,8 @@ describe('firestore integration tests', function () {
           id: `foo-id-${i}`,
           foo: 'something',
           bar: 'baz',
-          createdAt: DateTime.fromISO('2019-01-01T00:00:00.000Z').plus({ hour: i }).toJSDate(),
-          updatedAt: DateTime.fromISO('2019-01-01T00:00:00.000Z').plus({ hour: i }).toJSDate(),
+          createdAt: DateTime.fromISO('2019-01-01T00:00:00.000Z').plus({ hours: i }).toJSDate(),
+          updatedAt: DateTime.fromISO('2019-01-01T00:00:00.000Z').plus({ hours: i }).toJSDate(),
         })
     );
 
@@ -493,8 +493,8 @@ describe('firestore integration tests', function () {
           id: `foo-id-${i}`,
           foo: 'something',
           bar: 'baz',
-          createdAt: DateTime.fromISO('2019-01-01T00:00:00.000Z').plus({ hour: i }).toJSDate(),
-          updatedAt: DateTime.fromISO('2019-01-01T00:00:00.000Z').plus({ hour: i }).toJSDate(),
+          createdAt: DateTime.fromISO('2019-01-01T00:00:00.000Z').plus({ hours: i }).toJSDate(),
+          updatedAt: DateTime.fromISO('2019-01-01T00:00:00.000Z').plus({ hours: i }).toJSDate(),
         })
     );
 
