@@ -7,7 +7,7 @@ import stringify from 'fast-json-stable-stringify';
 import admin from 'firebase-admin';
 import flatten from 'flat';
 import HTTP_STATUS from 'http-status';
-import { isDate, isNil, reduce, round, last } from 'lodash';
+import { isDate, isNil, reduce, round, last } from 'lodash-es';
 import { DateTime } from 'luxon';
 import traverse, { TraverseContext } from 'traverse';
 import { DeepPartial } from 'ts-essentials';
@@ -195,7 +195,6 @@ export class Firestore<T extends DalModel> extends Cached<T> {
     return cleanDeep(model, CLEAN_CONFIG);
   }
 
-  /* eslint-disable sonarjs/cognitive-complexity */
   /**
    * Build firestore query from structured query
    * NOTE: Firestore doesn't work as expected when you combine endBefore and limit, and this corrects that
@@ -254,7 +253,6 @@ export class Firestore<T extends DalModel> extends Cached<T> {
       querySnapshot: await ref.get(),
     };
   }
-  /* eslint-enable sonarjs/cognitive-complexity */
 
   /**
    * Create instance of model in db
@@ -519,7 +517,6 @@ export class Firestore<T extends DalModel> extends Cached<T> {
       snapshots.push({ id: snapshot.id, ...data });
     });
 
-    // eslint-disable-next-line unicorn/no-array-method-this-argument
     const results = await Bluebird.map(snapshots, (snapshot) => {
       if (!this.config) throw new Err(CONFIG_ERROR);
       return this.config.convertFromDb(snapshot);

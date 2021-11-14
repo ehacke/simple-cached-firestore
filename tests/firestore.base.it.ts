@@ -2,8 +2,7 @@ import { expect } from 'chai';
 import { DateTime } from 'luxon';
 import sinon from 'sinon';
 import HTTP_STATUS from 'http-status';
-
-import { times } from 'lodash';
+import { times } from 'lodash-es';
 import Bluebird from 'bluebird';
 import { FILTER_OPERATORS, Firestore } from '../src/firestore';
 import { toDate } from '../src/utils';
@@ -471,7 +470,7 @@ describe('firestore integration tests', function () {
         })
     );
 
-    await Bluebird.each(instances, (instance) => ds.create(instance));
+    await Bluebird.each(instances, (instance: any) => ds.create(instance));
 
     const foundBeforeDelete = await ds.query();
     expect(foundBeforeDelete.length).to.eql(instances.length);
@@ -498,7 +497,7 @@ describe('firestore integration tests', function () {
         })
     );
 
-    await Bluebird.each(instances, (instance) => ds.create(instance));
+    await Bluebird.each(instances, (instance: any) => ds.create(instance));
 
     const foundBeforeDelete = await ds.query();
     expect(foundBeforeDelete.length).to.eql(instances.length);
