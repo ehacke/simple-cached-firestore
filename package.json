@@ -99,6 +99,7 @@
     "url": "git+https://github.com/ehacke/simple-cached-firestore.git"
   },
   "scripts": {
+    "beta": "npm run update:packageVersion && ./scripts/publish-beta.sh",
     "build": "rm -rf ./dist && tsc -p tsconfig.build.json && cp package.json dist/package.json && sed -i 's/\"files\":/\"_files\":/' dist/package.json",
     "commit": "git-cz",
     "docker:down": "COMPOSE_PROJECT_NAME=local docker-compose down --remove-orphans",
@@ -106,15 +107,19 @@
     "docker:up": "COMPOSE_PROJECT_NAME=local docker-compose up -d",
     "integration": "c8 mocha --recursive -r source-map-support/register -r ts-node/register -r tsconfig-paths/register --use_strict --exit \"tests/**/*.it.+(ts|js)\"",
     "lint": "fixpack && prettier-eslint --write && eslint --fix \"**/*.{js,ts}\"",
-    "major": "npm version major && npm publish",
-    "minor": "npm version minor && npm publish",
-    "patch": "npm version patch && npm publish",
+    "lint:ci": "eslint \"**/*.{js,ts}\"",
+    "major": "npm run update:packageVersion && npm version --git-tag-version false major && npm publish && npm run tag",
+    "minor": "npm run update:packageVersion && npm version --git-tag-version false minor && npm publish && npm run tag",
+    "patch": "npm run update:packageVersion && npm version --git-tag-version false patch && npm publish && npm run tag",
     "postpublish": "git push",
     "prepare": "fixpack && husky install",
     "prepublishOnly": "npm run build",
+    "tag": "git stash && git tag v\"$(npm view @ehacke/simple-cached-firestore version)\" && git push origin --tags",
     "test": "npm run docker:up && npm run test-all && npm run lint",
-    "test-all": "c8 mocha --recursive --use_strict --exit \"tests/**/*.+(unit|it).+(ts|js)\"",
-    "unit": "c8 mocha --recursive --use_strict --exit \"tests/**/*.unit.+(ts|js)\""
+    "test:all": "c8 mocha --recursive --use_strict --exit \"tests/**/*.+(unit|it).+(ts|js)\"",
+    "test:ci": "c8 mocha --recursive -r source-map-support/register -r ts-node/register -r tsconfig-paths/register --use_strict --exit \"tests/**/*.+(unit|it).+(ts|js)\"",
+    "unit": "c8 mocha --recursive --use_strict --exit \"tests/**/*.unit.+(ts|js)\"",
+    "update:packageVersion": "cat package.json | jq \".version = \\\"$(npm view @ehacke/simple-cached-firestore version)\\\"\" > package.json"
   },
   "type": "module",
   "types": "dist/src/index.d.ts"
