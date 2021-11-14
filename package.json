@@ -114,12 +114,12 @@
     "postpublish": "git push",
     "prepare": "fixpack && husky install",
     "prepublishOnly": "npm run build",
-    "tag": "git stash && git tag v\"$(npm view @ehacke/simple-cached-firestore version)\" && git push origin --tags",
+    "tag": "git stash && git tag v\"$(npm view simple-cached-firestore version)\" && git push origin --tags",
     "test": "npm run docker:up && npm run test-all && npm run lint",
     "test:all": "c8 mocha --recursive --use_strict --exit \"tests/**/*.+(unit|it).+(ts|js)\"",
     "test:ci": "c8 mocha --recursive -r source-map-support/register -r ts-node/register -r tsconfig-paths/register --use_strict --exit \"tests/**/*.+(unit|it).+(ts|js)\"",
     "unit": "c8 mocha --recursive --use_strict --exit \"tests/**/*.unit.+(ts|js)\"",
-    "update:packageVersion": "cat package.json | jq \".version = \\\"$(npm view @ehacke/simple-cached-firestore version)\\\"\" > package.json"
+    "update:packageVersion": "cat package.json | jq \".version = \\\"$(npm view simple-cached-firestore version)\\\"\" > package.json"
   },
   "type": "module",
   "types": "dist/src/index.d.ts"
