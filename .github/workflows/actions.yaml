@@ -95,11 +95,11 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Set env
-        run: echo "NPM_VERSION=$(npm view @gapizza/redis version --tag beta)" >> $GITHUB_ENV
+        run: echo "NPM_VERSION=$(npm view simple-cached-firestore version --tag beta)" >> $GITHUB_ENV
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Comment PR
         uses: thollander/actions-comment-pull-request@v1
         with:
-          message: Pushed version @gapizza/redis@${{ env.NPM_VERSION }}
+          message: Pushed version simple-cached-firestore@${{ env.NPM_VERSION }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
