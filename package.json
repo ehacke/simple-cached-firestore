@@ -36,9 +36,9 @@
   "devDependencies": {
     "@commitlint/cli": "^14.1.0",
     "@commitlint/config-conventional": "^14.1.0",
-    "@gapizza/commitlint-config": "^1.0.3-beta.25f39a2.0",
-    "@gapizza/eslint-config-ts": "^3.0.8-beta.382a26c.0",
-    "@gapizza/prettier-config": "^1.0.3-beta.2ca6c33.0",
+    "@gapizza/commitlint-config": "^2.0.0",
+    "@gapizza/eslint-config-ts": "^4.0.0",
+    "@gapizza/prettier-config": "^2.0.0",
     "@istanbuljs/nyc-config-typescript": "^1.0.1",
     "@types/getenv": "^1.0.0",
     "@types/lodash-es": "^4.17.5",
@@ -90,7 +90,7 @@
   },
   "main": "dist/src/index.js",
   "peerDependencies": {
-    "@gapizza/redis": "^1.0.3-beta.483af16.0",
+    "@gapizza/redis": "^2.0.0",
     "firebase-admin": "^9.12.0",
     "ts-essentials": "^9.0.0"
   },
