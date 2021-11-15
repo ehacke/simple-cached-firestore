@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { isPlainObject } from 'lodash';
+import { isPlainObject } from 'lodash-es';
 import { DateTime } from 'luxon';
 
 import { Firestore } from '../src/firestore';

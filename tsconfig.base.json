@@ -8,10 +8,12 @@
     "esModuleInterop": true,
     "experimentalDecorators": true,
     "incremental": true,
+    "target": "es2019",
     "lib": [
       "es5",
       "es6",
       "dom",
+      "es2020",
       "es2015.core",
       "es2015.collection",
       "es2015.generator",
@@ -25,11 +27,11 @@
       "dom.iterable",
       "scripthost",
       "esnext",
-      "esnext.asynciterable",
       "es2018"
     ],
-    "module": "commonjs",
+    "module": "ES2020",
     "moduleResolution": "node",
+    "isolatedModules": true,
     "noFallthroughCasesInSwitch": true,
     "noImplicitAny": false,
     "noImplicitReturns": true,
@@ -41,7 +43,6 @@
     "strict": true,
     "strictBindCallApply": true,
     "strictNullChecks": true,
-    "target": "es2019",
     "typeRoots": [
       "./node_modules/@types",
       "./types"

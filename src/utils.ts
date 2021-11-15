@@ -1,4 +1,4 @@
-import { isDate, isFunction, isNil, isString, isNumber } from 'lodash';
+import { isDate, isFunction, isNil, isString, isNumber } from 'lodash-es';
 import { DateTime } from 'luxon';
 
 export const stringNotDate = (input: any | string): input is string => {
