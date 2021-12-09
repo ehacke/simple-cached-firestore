@@ -4,15 +4,14 @@ import { classToPlain } from 'class-transformer';
 import cleanDeep from 'clean-deep';
 import Err from 'err';
 import stringify from 'fast-json-stable-stringify';
-import admin from 'firebase-admin';
+import admin, { firestore } from 'firebase-admin';
 import flatten from 'flat';
 import HTTP_STATUS from 'http-status';
-import { isDate, isNil, reduce, round, last } from 'lodash-es';
+import { isDate, isNil, round, last } from 'lodash-es';
 import { DateTime } from 'luxon';
 import traverse, { TraverseContext } from 'traverse';
 import { DeepPartial } from 'ts-essentials';
 
-import { firestore } from 'firebase-admin/lib/firestore';
 import { DocumentData } from '@google-cloud/firestore';
 import log from './logger';
 import Timestamp = firestore.Timestamp;
@@ -212,7 +211,7 @@ export class Firestore<T extends DalModel> extends Cached<T> {
     let ref: firestore.Query<DocumentData> = this.services.firestore.collection(this.config.collection);
 
     if (query.filters) {
-      ref = reduce(query.filters, (result, filter) => result.where(filter.property, filter.operator, filter.value), ref);
+      ref = query.filters.reduce((result, filter) => result.where(filter.property, filter.operator, filter.value), ref);
     }
 
     if (query.offset) {
