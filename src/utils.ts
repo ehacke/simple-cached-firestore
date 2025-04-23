@@ -1,7 +1,7 @@
 import { isDate, isFunction, isNil, isString, isNumber } from 'lodash-es';
 import { DateTime } from 'luxon';
 
-export const stringNotDate = (input: any | string): input is string => {
+export const stringNotDate = (input: unknown | string): input is string => {
   return isString(input);
 };
 
@@ -9,7 +9,7 @@ interface FirestoreTimestamp {
   toDate(): Date;
 }
 
-export const firestoreTimestamp = (input: any | FirestoreTimestamp): input is FirestoreTimestamp => {
+export const firestoreTimestamp = (input: unknown | FirestoreTimestamp): input is FirestoreTimestamp => {
   return isFunction((input as FirestoreTimestamp).toDate);
 };
 

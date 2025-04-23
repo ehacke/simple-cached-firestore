@@ -1,4 +1,5 @@
-import { Redis } from '@gapizza/redis';
+
+import { Redis } from '@ehacke/redis';
 import Bluebird from 'bluebird';
 import { expect } from 'chai';
 import getenv from 'getenv';
@@ -45,13 +46,12 @@ class TestClass {
 
   updatedAt: Date;
 
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
   validate() {}
 }
 
 const defaultServices = {
   firestore: db,
-  redis: new Redis({ host: getenv('REDIS_HOST'), port: getenv('REDIS_PORT') }),
+  redis: new Redis({ host: getenv('REDIS_HOST'), port: getenv.int('REDIS_PORT') }),
 };
 
 describe('firestore integration cache tests', function () {
@@ -71,14 +71,14 @@ describe('firestore integration cache tests', function () {
 
     const specialConfig = {
       collection: 'collection-foo',
-      convertFromDb: async (params) => new TestClass(params),
       convertForDb: (params) => params,
+      convertFromDb: async (params) => new TestClass(params),
     };
 
     ds.configure(specialConfig, {
       cacheTtlSec: 5,
-      stringifyForCache: (instance: TestClass) => JSON.stringify(instance),
       parseFromCache: (instance) => new TestClass(JSON.parse(instance)),
+      stringifyForCache: (instance: TestClass) => JSON.stringify(instance),
     });
 
     const originalSet = ds.cache.setSafe.bind(ds.cache);
@@ -99,10 +99,10 @@ describe('firestore integration cache tests', function () {
     });
 
     const testInstance = new TestClass({
-      id: 'foo-id',
-      foo: 'something',
       bar: 'baz',
       createdAt: curDate,
+      foo: 'something',
+      id: 'foo-id',
       updatedAt: curDate,
     });
 

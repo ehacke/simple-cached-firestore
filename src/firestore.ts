@@ -1,19 +1,20 @@
-import { Cached, CacheTimestampInterface, Redis } from '@gapizza/redis';
+import { Cached, CacheTimestampInterface, Redis } from '@ehacke/redis';
 import Bluebird from 'bluebird';
-import { classToPlain } from 'class-transformer';
+import { instanceToPlain } from 'class-transformer';
 import cleanDeep from 'clean-deep';
-import Err from 'err';
+import { Err } from '@ehacke/err';
 import stringify from 'fast-json-stable-stringify';
-import admin, { firestore } from 'firebase-admin';
-import flatten from 'flat';
+import admin from 'firebase-admin';
+import { flatten } from 'flat';
 import HTTP_STATUS from 'http-status';
-import { isDate, isNil, round, last } from 'lodash-es';
+import { defaultsDeep, isDate, isNil, last, round } from 'lodash-es';
 import { DateTime } from 'luxon';
 import traverse, { TraverseContext } from 'traverse';
 import { DeepPartial } from 'ts-essentials';
 
 import { DocumentData } from '@google-cloud/firestore';
-import log from './logger';
+import pino from 'pino';
+import firestore = admin.firestore;
 import Timestamp = firestore.Timestamp;
 
 export enum FILTER_OPERATORS {
@@ -58,7 +59,9 @@ export interface QueryInterface {
 
 export interface DalModel {
   id: string;
+
   validate(): void | Promise<void>;
+
   createdAt: Date;
   updatedAt: Date;
 }
@@ -66,13 +69,26 @@ export interface DalModel {
 interface ServicesInterface {
   firestore: admin.firestore.Firestore;
   redis: Redis;
+  log?: pino.Logger | undefined;
+}
+
+interface InternalServicesInterface {
+  firestore: admin.firestore.Firestore;
+  redis: Redis;
+  log: pino.Logger;
+}
+
+interface ConfigInterface {
+  logConfig?: pino.LoggerOptions;
 }
 
 export interface FirestoreConfigInterface<T extends DalModel> {
   readTimestampsToDates?: boolean;
   collection: string;
-  convertForDb(instance: DeepPartial<T>): any;
-  convertFromDb(params: any): T | Promise<T>;
+
+  convertForDb(instance: DeepPartial<T>): DeepPartial<T>;
+
+  convertFromDb(params: { [k: string]: unknown }): T | Promise<T>;
 }
 
 interface InternalFirestoreConfigInterface<T extends DalModel> extends Omit<FirestoreConfigInterface<T>, 'readTimestampsToDates'> {
@@ -81,7 +97,9 @@ interface InternalFirestoreConfigInterface<T extends DalModel> extends Omit<Fire
 
 export interface FirestoreCacheConfigInterface<T extends DalModel> {
   cacheTtlSec: number;
+
   stringifyForCache(instance: T): Promise<string> | string;
+
   parseFromCache(instance: string): Promise<T> | T;
 }
 
@@ -103,13 +121,21 @@ export class Firestore<T extends DalModel> extends Cached<T> {
   /**
    * @param {ServicesInterface} services
    */
-  constructor(services: ServicesInterface) {
+  constructor(services: ServicesInterface, config?: ConfigInterface) {
     super();
 
-    this.services = services;
-  }
+    const logOptions = defaultsDeep({}, config?.logConfig, {
+      name: 'firestore',
+      transport: {
+        target: 'pino-pretty',
+      },
+    });
 
-  /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+    this.services = {
+      ...services,
+      log: services.log || pino(logOptions),
+    };
+  }
 
   /**
    * Translate dates to timestamp
@@ -117,9 +143,8 @@ export class Firestore<T extends DalModel> extends Cached<T> {
    * @param {any} obj
    * @returns {any}
    */
-  static translateDatesToTimestamps(obj: any): any {
-    // eslint-disable-next-line array-callback-return,func-names
-    return traverse(classToPlain(obj)).map(function (this: TraverseContext, property): void {
+  static translateDatesToTimestamps<T extends object>(obj: T): T {
+    return traverse(instanceToPlain(obj)).map(function (this: TraverseContext, property): void {
       if (isDate(property)) {
         this.update(admin.firestore.Timestamp.fromDate(property));
       }
@@ -132,16 +157,13 @@ export class Firestore<T extends DalModel> extends Cached<T> {
    * @param {any} obj
    * @returns {any}
    */
-  static translateTimestampsToDates(obj: any): any {
-    // eslint-disable-next-line array-callback-return,func-names
+  static translateTimestampsToDates<T extends object>(obj: T | undefined): T {
     return traverse(obj).map(function (this: TraverseContext, property): void {
       if (property instanceof admin.firestore.Timestamp) {
         this.update(property.toDate());
       }
     });
   }
-
-  /* eslint-enable @typescript-eslint/explicit-module-boundary-types */
 
   /**
    * Get cache timestamp from firestore timestamp, or fall back to redisTimestamp
@@ -151,9 +173,8 @@ export class Firestore<T extends DalModel> extends Cached<T> {
    */
   static getCacheTimestamp(timestamp: Timestamp): CacheTimestampInterface {
     return {
-      seconds: timestamp.seconds,
-      // eslint-disable-next-line no-magic-numbers
       microseconds: round(timestamp.nanoseconds / 1000),
+      seconds: timestamp.seconds,
     };
   }
 
@@ -171,11 +192,11 @@ export class Firestore<T extends DalModel> extends Cached<T> {
 
     if (cacheConfig) {
       const { cacheTtlSec: ttlSec, stringifyForCache, parseFromCache } = cacheConfig;
-      this.configureCache({ redis }, { ttlSec, stringifyForCache, parseFromCache, prefix: config.collection });
+      this.configureCache({ redis }, { parseFromCache, prefix: config.collection, stringifyForCache, ttlSec });
     }
   }
 
-  readonly services: ServicesInterface;
+  readonly services: InternalServicesInterface;
 
   private config?: InternalFirestoreConfigInterface<T>;
 
@@ -185,8 +206,8 @@ export class Firestore<T extends DalModel> extends Cached<T> {
    * @param {{}} model
    * @returns {{}}
    */
-  private static cleanModel(model: { [k: string]: any }): { [k: string]: any } {
-    model = classToPlain(model);
+  private static cleanModel(model: { [k: string]: unknown }): { [k: string]: unknown } {
+    model = instanceToPlain(model);
 
     if (model.createdAt) delete model.createdAt;
     if (model.id) delete model.id;
@@ -201,7 +222,10 @@ export class Firestore<T extends DalModel> extends Cached<T> {
    * @param {QueryInterface} query
    * @returns {Query}
    */
-  private async getQuerySnapshot(query: QueryInterface): Promise<{ reverse: boolean; querySnapshot: admin.firestore.QuerySnapshot }> {
+  private async getQuerySnapshot(query: QueryInterface): Promise<{
+    reverse: boolean;
+    querySnapshot: admin.firestore.QuerySnapshot;
+  }> {
     if (!this.config) throw new Err(CONFIG_ERROR);
 
     let reverse = false;
@@ -248,8 +272,8 @@ export class Firestore<T extends DalModel> extends Cached<T> {
     }
 
     return {
-      reverse,
       querySnapshot: await ref.get(),
+      reverse,
     };
   }
 
@@ -283,12 +307,12 @@ export class Firestore<T extends DalModel> extends Cached<T> {
       await this.cache.setSafe(instance.id, instance, Firestore.getCacheTimestamp(writeTime));
 
       return instance;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      // eslint-disable-next-line no-magic-numbers
       if (error?.code === 6) {
         throw new Err('Already exists', HTTP_STATUS.CONFLICT);
       } else {
-        log.error(`Error during create: ${error?.message}`);
+        this.services.log.error(`Error during create: ${error?.message}`);
         throw new Err('Could not create');
       }
     }
@@ -337,9 +361,10 @@ export class Firestore<T extends DalModel> extends Cached<T> {
         instance: result,
         timestamp,
       };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      log.error(`Error while reading from db: ${error?.message}`);
-      log.error('Data: ', data);
+      this.services.log.error(`Error while reading from db: ${error?.message}`);
+      this.services.log.error('Data: ', data);
       throw error;
     }
   }
@@ -350,7 +375,7 @@ export class Firestore<T extends DalModel> extends Cached<T> {
    * @param {string} id
    * @returns {Promise<any | null>}
    */
-  async rawGet(id: string): Promise<any | null> {
+  async rawGet(id: string): Promise<{ [k: string]: unknown } | null> {
     const { raw } = await this.internalRawGet(id);
     return raw;
   }
@@ -361,7 +386,10 @@ export class Firestore<T extends DalModel> extends Cached<T> {
    * @param {string} id
    * @returns {Promise<{ instance: any, timestamp: CacheTimestampInterface }>}
    */
-  private async internalRawGet(id: string): Promise<{ raw: any | null; timestamp: CacheTimestampInterface }> {
+  private async internalRawGet(id: string): Promise<{
+    raw: { [k: string]: unknown } | null;
+    timestamp: CacheTimestampInterface;
+  }> {
     if (!this.config) throw new Err(CONFIG_ERROR);
 
     const snapshot = await this.services.firestore.collection(this.config.collection).doc(id).get();
@@ -398,7 +426,13 @@ export class Firestore<T extends DalModel> extends Cached<T> {
    * @param {boolean} throw404
    * @returns {Promise<T>}
    */
-  private async internalGetOrThrow(id: string, throw404 = false): Promise<{ instance: T; timestamp: CacheTimestampInterface }> {
+  private async internalGetOrThrow(
+    id: string,
+    throw404 = false
+  ): Promise<{
+    instance: T;
+    timestamp: CacheTimestampInterface;
+  }> {
     const { instance, timestamp } = await this.internalGet(id);
     if (!instance) throw new Err(`id: ${id} not found`, throw404 ? HTTP_STATUS.NOT_FOUND : HTTP_STATUS.INTERNAL_SERVER_ERROR);
     return { instance, timestamp };
@@ -415,14 +449,21 @@ export class Firestore<T extends DalModel> extends Cached<T> {
   async patch(id: string, patchUpdate: DeepPartial<T>, curDate = DateTime.utc().toJSDate()): Promise<T> {
     if (!this.config) throw new Err(CONFIG_ERROR);
 
-    const flattened = Firestore.cleanModel(flatten({ ...(await this.config.convertForDb(patchUpdate)), updatedAt: curDate }, { safe: true }));
+    const flattened = Firestore.cleanModel(
+      flatten(
+        {
+          ...(await this.config.convertForDb(patchUpdate)),
+          updatedAt: curDate,
+        },
+        { safe: true }
+      )
+    );
 
-    await this.services.firestore
-      .collection(this.config.collection)
-      .doc(id)
-      .update(Firestore.translateDatesToTimestamps(flattened as any));
+    await this.services.firestore.collection(this.config.collection).doc(id).update(Firestore.translateDatesToTimestamps(flattened));
 
     const { raw, timestamp } = await this.internalRawGet(id);
+    if (!raw) throw new Err(`id ${id} not found`, HTTP_STATUS.NOT_FOUND);
+
     const instance = await this.config.convertFromDb(raw);
     await this.cache.setSafe(id, instance, timestamp);
     await this.cache.delLists();
@@ -482,7 +523,13 @@ export class Firestore<T extends DalModel> extends Cached<T> {
     const { createdAt } = await this.getOrThrow(id);
 
     // I don't know why that casting is necessary
-    const updated = { ...Firestore.cleanModel({ ...(await this.config.convertForDb(instance as DeepPartial<T>)), updatedAt: curDate }), createdAt };
+    const updated = {
+      ...Firestore.cleanModel({
+        ...(await this.config.convertForDb(instance as DeepPartial<T>)),
+        updatedAt: curDate,
+      }),
+      createdAt,
+    };
 
     const { writeTime } = await this.services.firestore.collection(this.config.collection).doc(id).set(Firestore.translateDatesToTimestamps(updated));
     const timestamp = Firestore.getCacheTimestamp(writeTime);
@@ -506,7 +553,7 @@ export class Firestore<T extends DalModel> extends Cached<T> {
 
     const { reverse, querySnapshot } = await this.getQuerySnapshot(query);
 
-    const snapshots = [] as any[];
+    const snapshots = [] as { [k: string]: unknown }[];
 
     querySnapshot.forEach((snapshot) => {
       if (!snapshot.exists) return;
@@ -536,10 +583,10 @@ export class Firestore<T extends DalModel> extends Cached<T> {
    * @param {QueryInterface} query
    * @returns {Promise<any[]>}
    */
-  async rawQuery(query: QueryInterface): Promise<any[]> {
+  async rawQuery(query: QueryInterface): Promise<{ [k: string]: unknown }[]> {
     const { reverse, querySnapshot } = await this.getQuerySnapshot(query);
 
-    const results = [] as any[];
+    const results = [] as { [k: string]: unknown }[];
 
     querySnapshot.forEach((snapshot) => {
       if (!snapshot.exists) return;
@@ -592,8 +639,8 @@ export class Firestore<T extends DalModel> extends Cached<T> {
     if (paginate) {
       const nextPage = async (after?: DalModelValue): Promise<void> => {
         const paginatedQuery: QueryInterface = after
-          ? { sort: { property: 'id', direction: SORT_DIRECTION.ASC }, ...query, limit: pageSize, after }
-          : { sort: { property: 'id', direction: SORT_DIRECTION.ASC }, ...query, limit: pageSize };
+          ? { sort: { direction: SORT_DIRECTION.ASC, property: 'id' }, ...query, after, limit: pageSize }
+          : { sort: { direction: SORT_DIRECTION.ASC, property: 'id' }, ...query, limit: pageSize };
 
         const pageIds = await internalRemoveByQuery(paginatedQuery);
 

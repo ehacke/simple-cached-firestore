@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { expect } from 'chai';
 import { DateTime } from 'luxon';
 import sinon from 'sinon';
@@ -45,14 +46,13 @@ class TestClass {
 
   updatedAt: Date;
 
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
   validate() {}
 }
 
 const config = {
   collection: 'collection-foo',
-  convertFromDb: (params) => new TestClass(params),
   convertForDb: (params) => params,
+  convertFromDb: (params) => new TestClass(params),
 };
 
 const defaultServices = {
@@ -84,10 +84,10 @@ describe('firestore integration tests', function () {
     const spied = sinon.spy<Cache>(ds.cache);
 
     const testInstance = new TestClass({
-      id: 'foo-id',
-      foo: 'something',
       bar: 'baz',
       createdAt: DateTime.fromISO('2019-01-01T00:00:00.000Z').toJSDate(),
+      foo: 'something',
+      id: 'foo-id',
       updatedAt: DateTime.fromISO('2019-01-01T00:00:00.000Z').toJSDate(),
     });
 
@@ -112,17 +112,17 @@ describe('firestore integration tests', function () {
     ds.configure(config);
 
     const testInstance = new TestClass({
-      id: 'foo-id',
-      foo: 'something',
       bar: 'baz',
       createdAt: DateTime.fromISO('2019-01-01T00:00:00.000Z').toJSDate(),
+      foo: 'something',
+      id: 'foo-id',
       updatedAt: DateTime.fromISO('2019-01-01T00:00:00.000Z').toJSDate(),
     });
 
     await ds.create(testInstance);
     const result = await ds.create(testInstance).catch((error) => error);
 
-    expect(result.code).to.eql(HTTP_STATUS.CONFLICT);
+    expect(result.status).to.eql(HTTP_STATUS.CONFLICT);
     expect(result.message).to.eql('Already exists');
   });
 
@@ -133,14 +133,14 @@ describe('firestore integration tests', function () {
     const curDate = DateTime.fromISO('2019-01-01T00:00:00.000Z').toJSDate();
 
     const testInstance = new TestClass({
-      id: 'foo-id',
-      foo: 'something',
       bar: 'baz',
+      createdAt: curDate,
       deep: {
         thing1: '1',
         thing2: undefined,
       },
-      createdAt: curDate,
+      foo: 'something',
+      id: 'foo-id',
       updatedAt: curDate,
     });
 
@@ -157,10 +157,10 @@ describe('firestore integration tests', function () {
     ds.configure(config);
 
     const testInstance = new TestClass({
-      id: 'foo-id',
-      foo: 'something',
       bar: 'baz',
       createdAt: DateTime.fromISO('2019-01-01T00:00:00.000Z').toJSDate(),
+      foo: 'something',
+      id: 'foo-id',
       updatedAt: DateTime.fromISO('2019-01-01T00:00:00.000Z').toJSDate(),
     });
 
@@ -190,20 +190,20 @@ describe('firestore integration tests', function () {
     const curDate = DateTime.fromISO('2019-01-01T00:00:00.000Z').toJSDate();
 
     const testInstance = new TestClass({
-      id: 'foo-id',
-      foo: 'something',
       bar: 'baz',
+      createdAt: curDate,
       deep: {
         thing1: '1',
         thing2: '2',
       },
-      createdAt: curDate,
+      foo: 'something',
+      id: 'foo-id',
       updatedAt: curDate,
     });
 
     const created = await ds.create(testInstance);
     resetSpies(spied);
-    const updated = await ds.patch(created.id, { foo: 'new-foo', deep: { thing2: '9' } }, curDate);
+    const updated = await ds.patch(created.id, { deep: { thing2: '9' }, foo: 'new-foo' }, curDate);
 
     expect(spied.get.callCount).to.eql(0);
     expect(spied.setSafe.callCount).to.eql(1);
@@ -230,20 +230,20 @@ describe('firestore integration tests', function () {
     const curDate = DateTime.fromISO('2019-01-01T00:00:00.000Z').toJSDate();
 
     const testInstance = new TestClass({
-      id: 'foo-id',
-      foo: 'something',
       bar: 'baz',
+      createdAt: curDate,
       deep: {
         thing1: '1',
         thing2: '2',
       },
-      createdAt: curDate,
+      foo: 'something',
+      id: 'foo-id',
       updatedAt: curDate,
     });
 
     const created = await ds.create(testInstance);
     resetSpies(spied);
-    const updated = await ds.patch(created.id, { foo: 'new-foo', deep: { arrayThing: [{ foo: 'yo' }] } }, curDate);
+    const updated = await ds.patch(created.id, { deep: { arrayThing: [{ foo: 'yo' }] }, foo: 'new-foo' }, curDate);
 
     expect(spied.get.callCount).to.eql(0);
     expect(spied.setSafe.callCount).to.eql(1);
@@ -258,8 +258,8 @@ describe('firestore integration tests', function () {
     expect(updated.foo).to.eql('new-foo');
     expect(updated.bar).to.eql('baz');
     expect(updated.deep).to.eql({
-      thing1: '1',
       arrayThing: [{ foo: 'yo' }],
+      thing1: '1',
       thing2: '2',
     });
     expect(found).to.eql(updated);
@@ -273,19 +273,26 @@ describe('firestore integration tests', function () {
     const curDate = DateTime.fromISO('2019-01-01T00:00:00.000Z').toJSDate();
 
     const testInstance = new TestClass({
-      id: 'foo-id',
-      foo: 'something',
       bar: 'baz',
+      createdAt: curDate,
       deep: {
         thing1: '1',
       },
-      createdAt: curDate,
+      foo: 'something',
+      id: 'foo-id',
       updatedAt: curDate,
     });
 
     const created = await ds.create(testInstance);
     resetSpies(spied);
-    const updated = await ds.patch(created.id, { foo: 'new-foo', deep: { arrayThing: [{ foo: 'yo' }], thing2: undefined } }, curDate);
+    const updated = await ds.patch(
+      created.id,
+      {
+        deep: { arrayThing: [{ foo: 'yo' }], thing2: undefined },
+        foo: 'new-foo',
+      },
+      curDate
+    );
 
     expect(spied.get.callCount).to.eql(0);
     expect(spied.setSafe.callCount).to.eql(1);
@@ -298,9 +305,9 @@ describe('firestore integration tests', function () {
     expect(updated.foo).to.eql('new-foo');
     expect(updated.bar).to.eql('baz');
     expect(updated.deep).to.eql({
+      arrayThing: [{ foo: 'yo' }],
       thing1: '1',
       thing2: undefined,
-      arrayThing: [{ foo: 'yo' }],
     });
   });
 
@@ -312,10 +319,10 @@ describe('firestore integration tests', function () {
     const curDate = DateTime.fromISO('2019-01-01T00:00:00.000Z').toJSDate();
 
     const testInstance = new TestClass({
-      id: 'foo-id',
-      foo: 'something',
       bar: 'baz',
       createdAt: curDate,
+      foo: 'something',
+      id: 'foo-id',
       updatedAt: curDate,
     });
 
@@ -349,10 +356,10 @@ describe('firestore integration tests', function () {
     const curDate = DateTime.fromISO('2019-01-01T00:00:00.000Z').toJSDate();
 
     const testInstance = new TestClass({
-      id: 'foo-id',
-      foo: 'something',
       bar: 'baz',
       createdAt: curDate,
+      foo: 'something',
+      id: 'foo-id',
       updatedAt: curDate,
     });
 
@@ -381,17 +388,17 @@ describe('firestore integration tests', function () {
     const spied = sinon.spy<Cache>(ds.cache);
 
     const testInstance = new TestClass({
-      id: 'foo-id',
-      foo: 'something',
       bar: 'baz',
       createdAt: DateTime.fromISO('2019-01-01T00:00:00.000Z').toJSDate(),
+      foo: 'something',
+      id: 'foo-id',
       updatedAt: DateTime.fromISO('2019-01-01T00:00:00.000Z').toJSDate(),
     });
 
     const created = [] as any[];
 
     created.push(await ds.create(testInstance));
-    created.push(await ds.create(new TestClass({ ...testInstance, id: '2', foo: 'another' })));
+    created.push(await ds.create(new TestClass({ ...testInstance, foo: 'another', id: '2' })));
     created.sort((a, b) => a.id.localeCompare(b.id));
 
     resetSpies(spied);
@@ -417,21 +424,21 @@ describe('firestore integration tests', function () {
     const spied = sinon.spy<Cache>(ds.cache);
 
     const testInstance = new TestClass({
-      id: 'foo-id',
-      foo: 'something',
       bar: 'baz',
       createdAt: DateTime.fromISO('2019-01-01T00:00:00.000Z').toJSDate(),
+      foo: 'something',
+      id: 'foo-id',
       updatedAt: DateTime.fromISO('2019-01-01T00:00:00.000Z').toJSDate(),
     });
 
     const created = [] as any[];
 
     created.push(await ds.create(testInstance));
-    created.push(await ds.create(new TestClass({ ...testInstance, id: '2', foo: 'another' })));
+    created.push(await ds.create(new TestClass({ ...testInstance, foo: 'another', id: '2' })));
 
     resetSpies(spied);
 
-    const found = await ds.query({ filters: [{ property: 'foo', operator: FILTER_OPERATORS.EQ, value: 'something' }] });
+    const found = await ds.query({ filters: [{ operator: FILTER_OPERATORS.EQ, property: 'foo', value: 'something' }] });
     found.sort((a, b) => a.id.localeCompare(b.id));
 
     expect(spied.get.callCount).to.eql(0);
@@ -462,10 +469,10 @@ describe('firestore integration tests', function () {
       30,
       (i) =>
         new TestClass({
-          id: `foo-id-${i}`,
-          foo: 'something',
           bar: 'baz',
           createdAt: DateTime.fromISO('2019-01-01T00:00:00.000Z').plus({ hours: i }).toJSDate(),
+          foo: 'something',
+          id: `foo-id-${i}`,
           updatedAt: DateTime.fromISO('2019-01-01T00:00:00.000Z').plus({ hours: i }).toJSDate(),
         })
     );
@@ -489,10 +496,10 @@ describe('firestore integration tests', function () {
       30,
       (i) =>
         new TestClass({
-          id: `foo-id-${i}`,
-          foo: 'something',
           bar: 'baz',
           createdAt: DateTime.fromISO('2019-01-01T00:00:00.000Z').plus({ hours: i }).toJSDate(),
+          foo: 'something',
+          id: `foo-id-${i}`,
           updatedAt: DateTime.fromISO('2019-01-01T00:00:00.000Z').plus({ hours: i }).toJSDate(),
         })
     );

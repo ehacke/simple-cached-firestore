@@ -5,10 +5,10 @@
     ".ts"
   ],
   "include": [
-    "src/*"
+    "*.ts"
   ],
   "exclude": [
-    "scratch.*"
+    "src/scratch.*"
   ],
   "reporter": [
     "html",

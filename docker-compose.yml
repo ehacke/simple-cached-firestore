@@ -2,7 +2,7 @@ version: "3"
 
 services:
   firestore:
-    image: ehacke/firestore-emulator:latest
+    image: ehacke/firestore-emulator:1.0.2
     environment:
       - FIRESTORE_PROJECT_ID=project-test
       - FIRESTORE_LISTEN_ADDRESS=0.0.0.0:8080

@@ -41,7 +41,6 @@ class TestClass {
 
   updatedAt: Date;
 
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
   validate() {}
 
   getDalSchema() {
@@ -56,11 +55,11 @@ describe('firestore unit tests', () => {
     const curDate = DateTime.fromISO('2019-01-01T00:00:00.000Z').toJSDate();
 
     const testInstance = new TestClass({
-      id: 'foo-id',
-      foo: 'something',
       bar: 'baz',
       classy: [{ foo: 'something' }, { foo: 'something-2' }],
       createdAt: curDate,
+      foo: 'something',
+      id: 'foo-id',
       updatedAt: curDate,
     });
 
@@ -68,12 +67,12 @@ describe('firestore unit tests', () => {
     expect(isPlainObject(converted)).to.eql(true);
     expect(isPlainObject(converted.classy[0])).to.eql(true);
     expect(JSON.parse(JSON.stringify(converted))).to.eql({
-      id: 'foo-id',
-      foo: 'something',
       bar: 'baz',
       classy: [{ foo: 'something' }, { foo: 'something-2' }],
-      createdAt: { _seconds: 1_546_300_800, _nanoseconds: 0 },
-      updatedAt: { _seconds: 1_546_300_800, _nanoseconds: 0 },
+      createdAt: { _nanoseconds: 0, _seconds: 1_546_300_800 },
+      foo: 'something',
+      id: 'foo-id',
+      updatedAt: { _nanoseconds: 0, _seconds: 1_546_300_800 },
     });
   });
 });

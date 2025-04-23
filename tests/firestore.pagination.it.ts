@@ -43,14 +43,13 @@ class TestClass {
 
   updatedAt: Date;
 
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
   validate() {}
 }
 
 const config = {
   collection: 'collection-foo',
-  convertFromDb: (params) => new TestClass(params),
   convertForDb: (params) => params,
+  convertFromDb: (params) => new TestClass(params),
 };
 
 const defaultServices = {
@@ -74,24 +73,24 @@ describe('pagination logic', function () {
     await deleteCollection('collection-foo');
 
     const testInstance = new TestClass({
-      id: 'first',
-      foo: 'something',
       bar: 'baz',
       createdAt: curDate.toJSDate(),
+      foo: 'something',
+      id: 'first',
       updatedAt: curDate.toJSDate(),
     });
 
     await ds.create(testInstance);
-    await ds.create(new TestClass({ ...testInstance, id: 'second', createdAt: curDate.plus({ day: 2 }).toJSDate() }));
-    await ds.create(new TestClass({ ...testInstance, id: 'third', createdAt: curDate.plus({ day: 4 }).toJSDate() }));
+    await ds.create(new TestClass({ ...testInstance, createdAt: curDate.plus({ day: 2 }).toJSDate(), id: 'second' }));
+    await ds.create(new TestClass({ ...testInstance, createdAt: curDate.plus({ day: 4 }).toJSDate(), id: 'third' }));
   });
 
   afterEach(() => sinon.restore());
 
   it('find one before second asc', async () => {
     const found = await ds.query({
-      limit: 1,
       before: curDate.plus({ day: 1 }).toJSDate(),
+      limit: 1,
       sort: { direction: SORT_DIRECTION.ASC, property: 'createdAt' },
     });
 
@@ -111,8 +110,8 @@ describe('pagination logic', function () {
 
   it('find one after first asc', async () => {
     const found = await ds.query({
-      limit: 1,
       after: curDate.plus({ day: 1 }).toJSDate(),
+      limit: 1,
       sort: { direction: SORT_DIRECTION.ASC, property: 'createdAt' },
     });
 
@@ -133,8 +132,8 @@ describe('pagination logic', function () {
 
   it('find one before third asc', async () => {
     const found = await ds.query({
-      limit: 1,
       before: curDate.plus({ day: 3 }).toJSDate(),
+      limit: 1,
       sort: { direction: SORT_DIRECTION.ASC, property: 'createdAt' },
     });
 
@@ -155,8 +154,8 @@ describe('pagination logic', function () {
 
   it('find one after second asc', async () => {
     const found = await ds.query({
-      limit: 1,
       after: curDate.plus({ day: 3 }).toJSDate(),
+      limit: 1,
       sort: { direction: SORT_DIRECTION.ASC, property: 'createdAt' },
     });
 
@@ -176,8 +175,8 @@ describe('pagination logic', function () {
 
   it('find one before second desc', async () => {
     const found = await ds.query({
-      limit: 1,
       before: curDate.plus({ day: 3 }).toJSDate(),
+      limit: 1,
       sort: { direction: SORT_DIRECTION.DESC, property: 'createdAt' },
     });
 
@@ -197,8 +196,8 @@ describe('pagination logic', function () {
 
   it('find one after third desc', async () => {
     const found = await ds.query({
-      limit: 1,
       after: curDate.plus({ day: 3 }).toJSDate(),
+      limit: 1,
       sort: { direction: SORT_DIRECTION.DESC, property: 'createdAt' },
     });
 
@@ -219,8 +218,8 @@ describe('pagination logic', function () {
 
   it('find one before first desc', async () => {
     const found = await ds.query({
-      limit: 1,
       before: curDate.plus({ day: 1 }).toJSDate(),
+      limit: 1,
       sort: { direction: SORT_DIRECTION.DESC, property: 'createdAt' },
     });
 
@@ -230,8 +229,8 @@ describe('pagination logic', function () {
 
   it('find one after second desc', async () => {
     const found = await ds.query({
-      limit: 1,
       after: curDate.plus({ day: 1 }).toJSDate(),
+      limit: 1,
       sort: { direction: SORT_DIRECTION.DESC, property: 'createdAt' },
     });
 
