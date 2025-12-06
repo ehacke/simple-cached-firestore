@@ -364,7 +364,7 @@ export class Firestore<T extends DalModel> extends Cached<T> {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       this.services.log.error(`Error while reading from db: ${error?.message}`);
-      this.services.log.error('Data: ', data);
+      this.services.log.error({ data }, 'Data: ');
       throw error;
     }
   }
