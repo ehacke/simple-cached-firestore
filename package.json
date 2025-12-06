@@ -1,15 +1,10 @@
 {
 	"name": "simple-cached-firestore",
 	"description": "Firestore wrapper with simplified API and optional caching built in",
-	"version": "7.0.1",
+	"version": "7.0.2",
 	"author": "Eric Hacke",
 	"bugs": {
 		"url": "https://github.com/ehacke/simple-cached-firestore/issues"
-	},
-	"config": {
-		"commitizen": {
-			"path": "./node_modules/cz-conventional-changelog"
-		}
 	},
 	"dependencies": {
 		"@ehacke/err": "^1.0.1",
@@ -35,9 +30,6 @@
 		"traverse": "^0.6.11"
 	},
 	"devDependencies": {
-		"@commitlint/cli": "^19.8.0",
-		"@commitlint/config-conventional": "^19.8.0",
-		"@ehacke/commitlint-config": "^4.0.2",
 		"@ehacke/eslint-config": "^2.1.2",
 		"@ehacke/prettier-config": "^3.0.1",
 		"@ehacke/redis": "^2.0.11",
@@ -51,9 +43,6 @@
 		"c8": "^10.1.3",
 		"chai": "^5.2.0",
 		"class-validator": "^0.14.1",
-		"commitizen": "^4.3.1",
-		"commitlint": "^19.8.0",
-		"cz-conventional-changelog": "^3.3.0",
 		"dotenv": "^16.5.0",
 		"eslint": "^9.25.1",
 		"eslint-import-resolver-typescript": "^4.3.4",
