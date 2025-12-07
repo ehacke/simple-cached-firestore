@@ -1,56 +1,26 @@
 {
   "compilerOptions": {
-    "incremental": true,
-    "target": "es2019",
-    "lib": [
-      "es5",
-      "es6",
-      "dom",
-      "es2020",
-      "es2015.core",
-      "es2015.collection",
-      "es2015.generator",
-      "es2015.iterable",
-      "es2015.promise",
-      "es2015.proxy",
-      "es2015.reflect",
-      "es2015.symbol",
-      "es2015.symbol.wellknown",
-      "dom.iterable",
-      "scripthost",
-      "esnext",
-      "esnext.asynciterable",
-      "es2018"
-    ],
-    "module": "ES2020",
-    "moduleResolution": "node",
-    "isolatedModules": true,
-    "allowJs": false,
-    "sourceMap": true,
-    "outDir": "./dist",
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ESNext"],
     "strict": true,
     "noImplicitAny": false,
-    "strictNullChecks": true,
-    "strictBindCallApply": true,
-    "noImplicitThis": true,
-    "alwaysStrict": true,
-    "noUnusedLocals": true,
-    "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true,
-    "resolveJsonModule": true,
-    "baseUrl": "./",
-    "typeRoots": [
-      "./node_modules/@types",
-      "./types"
-    ],
     "esModuleInterop": true,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "outDir": "./dist",
+    "resolveJsonModule": true,
+    "forceConsistentCasingInFileNames": true,
+    "incremental": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "declaration": true
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedLocals": true
   },
-  "exclude": [
-    "node_modules",
-    "./coverage",
-    "./scratch.*"
-  ]
+  "exclude": ["node_modules", "./coverage", "./scratch.*"]
 }

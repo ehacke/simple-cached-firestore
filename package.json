@@ -7,7 +7,7 @@
 		"url": "https://github.com/ehacke/simple-cached-firestore/issues"
 	},
 	"dependencies": {
-		"@ehacke/err": "^1.0.4",
+		"@ehacke/err": "^1.0.6",
 		"@types/bluebird": "^3.5.42",
 		"@types/flat": "^5.0.5",
 		"@types/lodash": "^4.17.21",
@@ -31,7 +31,7 @@
 	"devDependencies": {
 		"@ehacke/eslint-config": "^2.1.4",
 		"@ehacke/prettier-config": "^3.0.2",
-		"@ehacke/redis": "^2.0.13",
+		"@ehacke/redis": "^2.0.14",
 		"@istanbuljs/nyc-config-typescript": "^1.0.2",
 		"@types/getenv": "^1.0.3",
 		"@types/lodash-es": "^4.17.12",
@@ -63,7 +63,7 @@
 		"tsx": "^4.21.0",
 		"typescript": "^5.9.3",
 		"typings": "^2.1.1",
-		"validated-base": "^2.0.2"
+		"validated-base": "^2.0.3"
 	},
 	"files": [
 		"dist/**/*.{js,ts,tsbuildinfo,json}",
